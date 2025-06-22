@@ -1,0 +1,47 @@
+
+### NGINX Server ###########################################
+  nginx:
+    container_name: "${COMPOSE_PROJECT_NAME}_nginx"
+    hostname: nginx
+    image: nginx
+    build:
+      context: ./nginx
+      args:
+        - COMMON_GID=${COMMON_GID}
+        - COMMON_UID=${COMMON_UID}
+        - COMMON_NAME_GID_1000=${COMMON_NAME_GID_1000}
+        - COMMON_NAME_UID_1000=${COMMON_NAME_UID_1000}
+        - NODE_GID=${NODE_GID}
+        - NODE_UID=${NODE_UID}
+        - PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
+        - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
+        - GRAPHQL_UPSTREAM_CONTAINER=${NGINX_GRAPHQL_UPSTREAM_CONTAINER}
+        - GRAPHQL_UPSTREAM_PORT=${NGINX_GRAPHQL_UPSTREAM_PORT}
+        - CHANGE_SOURCE=${CHANGE_SOURCE}
+        - RESTY_DEB_VERSION=${NGINX_RESTY_DEB_VERSION}
+    logging:
+      driver: "json-file"
+      options:
+          max-size: ${COMMON_CONTAINER_LOG_MAX_SIZE:-50m}
+    volumes:
+      - ${APP_DATA_PATH_HOST}/webphp/goodwin:/var/www
+      - ${APP_LOG_PATH_HOST}/nginx:/var/log/nginx
+      - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
+      - ${NGINX_SSL_PATH}:/etc/nginx/ssl
+      - ${NGINX_LUA_PATH}:/etc/nginx/lua
+      - ${NGINX_CONF_PATH}:/usr/local/openresty/nginx/conf
+    ports:
+      - "${NGINX_HOST_HTTP_PORT}:80"
+      - "${NGINX_HOST_HTTPS_PORT}:443"
+    # depends_on:
+    #   - "${DB_ENGINE}"
+    #   - php-fpm
+    #   - memcached
+    #   - php-worker
+    links:
+#        - "${DB_ENGINE}"
+        - phpfpm
+    networks:
+      - frontend
+      - backend
+

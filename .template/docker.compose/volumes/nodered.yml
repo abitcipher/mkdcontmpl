@@ -1,0 +1,2 @@
+  nodered:
+    driver: ${VOLUMES_DRIVER}

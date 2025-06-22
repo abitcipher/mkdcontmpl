@@ -1,0 +1,29 @@
+
+### NETDATA ###################################################################
+  netdata:
+    restart: always
+    hostname: ${NETDATA_HOSTNAME:-netdata}
+    image: netdata/netdata:latest
+    environment:
+      - PGID=${GID_DOCKER:-0}
+    logging:
+      driver: "json-file"
+      options:
+          max-size: ${COMMON_CONTAINER_LOG_MAX_SIZE:-50m}
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - ./netdata/conf:/etc/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    cap_add:
+      - SYS_PTRACE
+      - NET_ADMIN
+    ports:
+      - "${NETDATA_PORT:-19999}:19999"
+    networks:
+      - frontend
+      - backend

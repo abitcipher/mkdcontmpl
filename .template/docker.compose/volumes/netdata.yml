@@ -1,0 +1,2 @@
+  netdata:
+    driver: ${VOLUMES_DRIVER}

@@ -1,0 +1,26 @@
+
+### FTP ####################################################
+  ftp:
+    container_name: "${COMPOSE_PROJECT_NAME}_ftp"
+    hostname: ftp
+    build:
+      context: ./ftp
+    environment:
+      - PUBLIC_HOST=${FTP_PUBLIC_HOST:-localhost}
+      - FTP_USER_NAME=${FTP_USER_NAME:-ftpuser}
+      - FTP_USER_PASS=${FTP_USER_PASS:-ftppassword}
+      - FTP_USER_HOME=${FTP_USER_HOME:-/home/ftpuser}
+    volumes:
+      - "./ftp/conf:/etc/pure-fptd"
+      - "./ftp/conf/ssl:/etc/ssl"
+      - ${APP_DATA_PATH_HOST}/ftp:${FTP_USER_HOME}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    ports:
+      - "21:21"
+      - "30000-30009:30000-30009"
+    restart: always
+    networks:
+      - backend

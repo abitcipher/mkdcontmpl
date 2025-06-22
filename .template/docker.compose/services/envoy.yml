@@ -1,0 +1,30 @@
+### PROXY ENVOY ###############################################################
+  envoy:
+    container_name: "${COMPOSE_PROJECT_NAME}_envoy"
+    hostname: envoy
+    image: envoy
+    build:
+      dockerfile: Dockerfile
+      context: ./envoy
+      args:
+        - ENVOY_VERSION=${ENVOY_VERSION:-1.21.2}
+    volumes:
+      - ./envoy/conf:/etc/envoy
+      - ${APP_LOG_PATH_HOST}/envoy/envoy_admin.log:/var/log/envoy_admin.log
+    environment:
+      - "ENVOY_UID=0"
+      - APP_FQDN=${APP_FQDN}
+    cap_add:
+      - NET_ADMIN
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+    networks:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8001:8001"
+      - "6033:6033"

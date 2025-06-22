@@ -1,0 +1,2 @@
+  rabbitmq:
+    driver: ${VOLUMES_DRIVER}

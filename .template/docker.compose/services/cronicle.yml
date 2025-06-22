@@ -1,0 +1,32 @@
+
+### CRONICLE ##################################################################
+  cronicle:
+    container_name: "${COMPOSE_PROJECT_NAME}_cronicle"
+    hostname: cronicle
+    build:
+      context: ./cronicle
+      args:
+        - CRONICLE_VERSION=${CRONICLE_VERSION:-0.9.19}
+        - COMMON_GID=${COMMON_GID}
+        - COMMON_UID=${COMMON_UID}
+        - COMMON_NAME_GID_1000=${COMMON_NAME_GID_1000}
+        - COMMON_NAME_UID_1000=${COMMON_NAME_UID_1000}
+    logging:
+      driver: "json-file"
+      options:
+          max-size: ${COMMON_CONTAINER_LOG_MAX_SIZE:-50m}
+    volumes:
+      # re-check 'DB_BACKUP_MOUNT_STORAGE_SCRIPT_*' at '.env' - mountpoint directories...
+      - ./cronicle/conf:/opt/cronicle/conf
+      - /mnt/backup:/backup
+      - ${APP_SCRIPT_PATH_HOST}/gwtool/gwtool:/opt/dockers/gwtool
+      - ${APP_SCRIPT_PATH_HOST}/gwtool/.env:/opt/dockers/.env
+      - ${APP_DATA_PATH_HOST}/cronicle/data:/opt/cronicle/data
+      - ${APP_DATA_PATH_HOST}/cronicle/queue:/opt/cronicle/queue
+      - ${APP_DATA_PATH_HOST}/cronicle/plugins:/opt/cronicle/plugins
+      - ${APP_LOG_PATH_HOST}/cronicle:/opt/cronicle/logs
+    ports:
+      - "${CRONICLE_PORT}:3012"
+    networks:
+      - frontend
+      - backend

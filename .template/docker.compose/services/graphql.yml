@@ -1,0 +1,27 @@
+
+### HASURA  ###################################################################
+  graphql:
+    container_name: "${COMPOSE_PROJECT_NAME}_graphql"
+    hostname: graphql
+    image: hasura/graphql-engine:${GRAPHQL_VERSION:-v2.6.1}
+    depends_on:
+      - postgres
+#    restart: always
+    restart: unless-stopped
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: ${GRAPHQL_DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      ## next line set an admin secret password for GraphQL Engine
+      HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET:-hasura}
+      HASURA_GRAPHQL_LOG_LEVEL: ${GRAPHQL_LOG_LEVEL:-DEBUG}
+      HASURA_GRAPHQL_CORS_DOMAIN: ${GRAPHQL_CORS_DOMAIN:-*}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    ports:
+      - "${GRAPHQL_PORT:-8088}:8080"
+    networks:
+      - backend
+      - frontend

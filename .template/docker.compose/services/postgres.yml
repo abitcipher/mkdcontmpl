@@ -1,0 +1,41 @@
+
+### POSTGRESQL ################################################################
+  postgres:
+    container_name: "${COMPOSE_PROJECT_NAME}_postgres"
+    hostname: postgres
+    image: postgres
+    build:
+      context: ./postgres
+      args:
+        - POSTGIS_VERSION=${POSTGIS_VERSION:-3.1.4+dfsg-1.pgdg110+1}
+        - PG_MAJOR=${POSTGIS_MAJOR:-3}
+        - POSTGIS_MAJOR=${POSTGIS_MAJOR:-3}
+        - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+        - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+        - POSTGRES_DB=${POSTGRES_DB:-postgres}
+        - POSTGRES_USER=${POSTGRES_USER:-postgres}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+        - POSTGRES_ROOT_PASSWORD=${POSTGRES_ROOT_PASSWORD:-postgres}
+        - POSTGRES_GWF_INIT=${POSTGRES_GWF_INIT:-false}
+        - POSTGRES_GWF_DB=${POSTGRES_GWF_DB:-florist}
+        - POSTGRES_GWF_USER=${POSTGRES_GWF_USER:-florist}
+        - POSTGRES_GWF_PASSWORD=${POSTGRES_GWF_PASSWORD:-florist}
+    stop_grace_period: 30s
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    volumes:
+      - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d # Place init file(s) here.
+      - ${APP_DATA_PATH_HOST}/postgres:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - backend
+      - frontend

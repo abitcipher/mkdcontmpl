@@ -1,0 +1,2 @@
+  pgadmin:
+    driver: ${VOLUMES_DRIVER}

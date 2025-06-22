@@ -1,0 +1,29 @@
+
+### MEMCACHED #################################################################
+  memcached:
+    container_name: "${COMPOSE_PROJECT_NAME}_memcached"
+    hostname: memcached
+    build: ./memcached
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - MEMCACHED_HOST_PORT=${MEMCACHED_HOST_PORT:-11211}
+      - MEMCACHED_PORT=${MEMCACHED_PORT}
+      - MEMCACHED_USER=${MEMCACHED_USER}
+      - MEMCACHED_MEMUSAGE=${MEMCACHED_MEMUSAGE}
+      - MEMCACHED_MAXCONN=${MEMCACHED_MAXCONN}
+      - MEMCACHED_THREADS=${MEMCACHED_THREADS}
+      - MEMCACHED_REQUESTS_PER_EVENT=${MEMCACHED_REQUESTS_PER_EVENT}
+    logging:
+      driver: "json-file"
+      options:
+          max-size: ${COMMON_CONTAINER_LOG_MAX_SIZE:-50m}
+    volumes:
+      - ${APP_DATA_PATH_HOST}/memcached:/var/lib/memcached
+      - ./memcached/iptables.sh:/iptables.sh
+    ports:
+      - "${MEMCACHED_HOST_PORT}:${MEMCACHED_HOST_PORT:-11211}"
+    # depends_on:
+    #   - php-fpm
+    networks:
+      - backend

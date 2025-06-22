@@ -1,0 +1,2 @@
+  proxysql:
+    driver: ${VOLUMES_DRIVER}

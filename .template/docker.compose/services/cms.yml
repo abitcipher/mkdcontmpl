@@ -1,0 +1,34 @@
+
+### CMS #######################################################################
+  cms:
+    container_name: "${COMPOSE_PROJECT_NAME}_cms"
+    hostname: cms
+    image: cms
+    build:
+      dockerfile: Dockerfile
+      context: ./cms
+#      target: development
+      args:
+        - YARN_VERSION=${YARN_VERSION:-1.22.10}
+    environment:
+      - NODE_ENV=development
+      - CMS_DATABASE_CLIENT=${CMS_DATABASE_CLIENT:-postgres}
+      - CMS_DATABASE_HOST=${CMS_DATABASE_HOST:-postgres}
+      - CMS_DATABASE_PORT=${CMS_DATABASE_PORT:-5432}
+      - CMS_DATABASE_NAME=${CMS_DATABASE_NAME:-strapi}
+      - CMS_DATABASE_USERNAME=${CMS_DATABASE_USERNAME:-strapi}
+      - CMS_DATABASE_PASSWORD=${CMS_DATABASE_PASSWORD:-strapi}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    ports:
+      - 3003:${CMS_PORT:-1337}
+    volumes:
+      - ./cms:/tmp/cms/
+    # volumes:
+    #   - ./app:/srv/app
+    depends_on:
+      - postgres
+    networks:
+      - backend

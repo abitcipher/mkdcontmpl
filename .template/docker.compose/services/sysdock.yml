@@ -1,0 +1,23 @@
+
+### SYSDOCK ###################################################################
+  sysdock:
+    container_name: "${COMPOSE_PROJECT_NAME}_sysdock"
+    hostname: sysdock
+    image: sysdock
+    command: sh -c "cd /usr/local/bin/ && ./sysdock"
+    build:
+      dockerfile: Dockerfile
+      context: ./sysdock
+    volumes:
+      - ${APP_DATA_PATH_HOST}/sysdock/sysdock_history:/usr/local/bin/sysdock_history
+      - ./sysdock/src/assets:/usr/local/bin/assets
+      - ./sysdock/.env:/usr/local/bin/.env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    ports:
+      - "${SYSDOCK_PORT}:8989"
+    networks:
+      - frontend
+      - backend

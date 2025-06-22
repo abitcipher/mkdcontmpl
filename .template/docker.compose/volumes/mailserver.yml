@@ -1,0 +1,2 @@
+  mailserver:
+    driver: ${VOLUMES_DRIVER}

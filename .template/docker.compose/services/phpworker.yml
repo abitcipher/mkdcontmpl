@@ -1,0 +1,41 @@
+
+### PHP WORKER ################################################################
+  phpworker:
+    container_name: "${COMPOSE_PROJECT_NAME}_phpworker"
+    hostname: phpworker
+    build:
+      context: ./phpworker
+      args:
+        - COMMON_GID=${COMMON_GID}
+        - COMMON_UID=${COMMON_UID}
+        - COMMON_NAME_GID_1000=${COMMON_NAME_GID_1000}
+        - COMMON_NAME_UID_1000=${COMMON_NAME_UID_1000}
+#          - NODE_GID=${NODE_GID}
+#          - NODE_UID=${NODE_UID}
+        - _LOWER_GID=${_LOWER_GID}
+        - _LOWER_UID=${_LOWER_UID}
+        - _UPPER_GID=${_UPPER_GID}
+        - _UPPER_UID=${_UPPER_UID}
+        - PHP_VERSION=${PHP_VERSION}
+        - PHP_SHA256=${PHP_SHA256}
+#        - PHP_GPG_KEYS=${PHP_GPG_KEYS}
+        - APP_CODE_PATH=${APP_CODE_PATH:-/var/www}
+    env_file:
+      - .env
+    logging:
+      driver: "json-file"
+      options:
+          max-size: ${COMMON_CONTAINER_LOG_MAX_SIZE:-50m}
+    volumes:
+      - ./phpworker/conf/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./phpworker/conf/php/php.ini:/usr/local/etc/php/php.ini
+      - ./phpworker/conf/php/conf.d/redis.ini:/usr/local/etc/php/conf.d/redis.ini
+      - ./phpworker/conf/php/conf.d/zstd.ini:/usr/local/etc/php/conf.d/zstd.ini
+      - ./phpworker/supervisord.d:/etc/supervisord.d
+#      - ${APP_DATA_PATH_HOST}/webphp/goodwin/lib:/var/www/lib
+      - ${APP_DATA_PATH_HOST}/webphp/goodwin:${APP_CODE_PATH}${APP_CODE_CONTAINER_FLAG}
+      - ${APP_LOG_PATH_HOST}/phpworker/:/var/log/php-worker/
+    networks:
+      - backend
+    links:
+      - memcached

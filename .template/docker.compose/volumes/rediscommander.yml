@@ -1,0 +1,2 @@
+  rediscommander:
+    driver: ${VOLUMES_DRIVER}

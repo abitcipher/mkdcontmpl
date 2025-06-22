@@ -1,0 +1,25 @@
+
+### VITESS ####################################################################
+  vitess:
+    container_name: "${COMPOSE_PROJECT_NAME}_vitess"
+    hostname: vitess
+    build:
+      context: ./vitess
+      args:
+        - VITESS_VERSION=${VITESS_VERSION:-7.0.2}
+    environment:
+      - VTPORTSTART=${VTPORTSTART:-15000}
+      - VTROOT=${VTROOT:-/vt/src/vitess.io/vitess}
+      - VTDATAROOT=${VTDATAROOT:-/vt/vtdataroot}
+      - USER=${VTUSER:-vitess}
+    volumes:
+      - ./vitess/config:/vt/src/vitess.io/vitess/config
+    logging:
+      driver: "json-file"
+      options:
+          max-size: ${COMMON_CONTAINER_LOG_MAX_SIZE:-50m}
+    ports:
+      - "${PMA_PORT}:80"
+    networks:
+      - frontend
+      - backend

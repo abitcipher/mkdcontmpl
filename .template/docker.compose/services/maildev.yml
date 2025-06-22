@@ -1,0 +1,20 @@
+
+### MAILDEV ###################################################################
+  maildev:
+    container_name: "${COMPOSE_PROJECT_NAME}_maildev"
+    hostname: maildev
+    image: maildev
+    build:
+      context: ./maildev
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+    cap_add:
+      - NET_ADMIN # For Fail2Ban to work
+      - SYS_PTRACE
+    networks:
+      - backend

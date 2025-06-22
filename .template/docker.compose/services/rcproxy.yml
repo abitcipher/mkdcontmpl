@@ -1,0 +1,14 @@
+
+### RCPROXY ###################################################################
+  rcproxy:
+    hostname: rcproxy
+    image: rcproxy
+    build:
+      context: ./rcproxy
+    volumes:
+      - ./rcproxy/config/default.toml:/config/default/default.toml
+      - ./rcproxy/config/cli.yml:/app/cli.yml
+#      - ./rcproxy/:/opt/proxysql/
+#    environment:
+#    command: bash -l -c /opt/entrypoint/entrypoint.bash
+

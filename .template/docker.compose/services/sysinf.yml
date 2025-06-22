@@ -1,0 +1,22 @@
+
+### SYSINF ####################################################################
+  sysinf:
+    container_name: "${COMPOSE_PROJECT_NAME}_sysinf"
+    hostname: sysinf
+    image: sysinf
+    command: sh -c "cd /usr/local/bin/ && ./sysinf"
+    build:
+      dockerfile: Dockerfile
+      context: ./sysinf
+    volumes:
+      - ${APP_DATA_PATH_HOST}/sysinf/sysinf_history:/usr/local/bin/sysinf_history
+      - ./sysinf/src/assets:/usr/local/bin/assets
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    ports:
+      - "${SYSINF_PORT}:7171"
+    networks:
+      - frontend
+      - backend

@@ -1,0 +1,28 @@
+
+### PERCONA ###################################################################
+  percona:
+    # image: perconalab/percona-xtradb-cluster:latest
+    container_name: "${COMPOSE_PROJECT_NAME}_percona"
+    hostname: percona
+    build: ./percona
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${PERCONA_ROOT_PASSWORD:-nb34vq}
+      - CLUSTER_NAME=${PERCONA_CLUSTER_NAME:-goodwin}
+      # - DISCOVERY_SERVICE=10.20.2.4:2379
+    logging:
+      driver: "json-file"
+      options:
+          max-size: ${COMMON_CONTAINER_LOG_MAX_SIZE:-50m}
+    volumes:
+      - ./percona/conf.d/my.cnf:/etc/my.cnf
+      - ${APP_DATA_PATH_HOST}/percona:/var/lib/mysql:rw,delegated
+      - ${APP_LOG_PATH_HOST}/percona:/var/log/mysql
+    cap_add:
+      - SYS_NICE 
+      - NET_ADMIN
+    ports:
+      - "${PERCONA_PORT:-3306}:3306"
+      - "33060:33060"
+    networks:
+      - backend

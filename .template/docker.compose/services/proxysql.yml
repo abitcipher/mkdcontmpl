@@ -1,0 +1,23 @@
+
+### PROXYSQL ##################################################################
+  proxysql:
+    image: proxysql/packaging:build-debian11
+    volumes:
+      - ./proxysql/deb-compliant/latest-package/ctl/:/root/ctl/
+      - ./proxysql/deb-compliant/entrypoint/:/opt/entrypoint/
+      - ./proxysql:/opt/proxysql/
+    environment:
+      - MAKE
+      - MAKEOPT
+      - CURVER
+      - PKG_RELEASE=debian11
+      - PROXYSQL_BUILD_TYPE=clickhouse
+    command: bash -l -c /opt/entrypoint/entrypoint.bash
+
+  debian11_clang_build:
+    extends:
+      service: debian11_build
+    image: proxysql/packaging:build-clang-debian11
+    environment:
+      - PKG_RELEASE=debian11-clang
+      - PROXYSQL_BUILD_TYPE=clickhouse

@@ -1,0 +1,13 @@
+test
+test|key             value
+test|oneline         one line value
+test|multiline \
+  --multi \
+  --line
+testkv               key+value
+md5sum               e65b0dce58cbecf21e7c9ff7318f3b57
+url                  https://test.net
+url|subdir           https://test.net/subdir
+url|subdir|slug      https://test.net/subdir/slug
+url|subdir|param     https://test.net/subdir?param=1234567890
+

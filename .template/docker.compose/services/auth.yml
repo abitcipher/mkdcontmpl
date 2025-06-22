@@ -1,0 +1,28 @@
+
+### AUTH ######################################################################
+  auth:
+    container_name: "${COMPOSE_PROJECT_NAME}_auth"
+    hostname: auth
+    image: auth
+    build:
+      dockerfile: Dockerfile
+      context: ./auth
+    environment:
+      - DATABASE_URL=${AUTH_DATABASE_URL}
+      - AUTH_SECRET_KEY=${AUTH_SECRET_KEY}
+      - DOMAIN=${AUTH_DOMAIN}
+      - PORT=${AUTH_PORT:-3000}
+      - RUST_LOG=${RUST_LOG:-warn}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    volumes:
+      - ./auth/.env:/usr/src/auth/.env
+    depends_on:
+      - postgres
+    ports:
+      - "${AUTH_PORT:-4444}:3000"
+    networks:
+      - frontend
+      - backend      

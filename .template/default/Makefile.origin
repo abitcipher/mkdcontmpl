@@ -1,0 +1,159 @@
+# SHELL := /bin/bash
+DATA  := .
+DATATMPL := ..
+
+MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+CURRENT_DIR := $(notdir $(patsubst %/,%,$(dir $(MKFILE_PATH))))
+
+VAR_SYMBOL := A-Za-z0-9_
+
+D  := $(DATA)
+DT := $(DATATMPL)
+
+# SERVICE_NAME :=
+
+# SET CONTEXT - dir name with init variable files
+ifneq ($(CONTEXT),)
+CTX := $(CONTEXT)
+endif
+
+ifeq ($(strip $(CTX)),)
+CTX := .
+endif
+
+ENVDIR := $(D)/.$(CTX)
+
+
+# ENVFILE_AVAILABLE := $(D)/$(CTX)/.env/*.env
+
+ENVFILE_ENABLED := env.*
+
+YMLFILE_AVAILABLE := $(D)/$(CTX)/.yml/*.yml
+YML_VOLUMES_AVAILABLE  := $(D)/$(CTX)/.yml/yml.volumes*
+YML_SERVICES_AVAILABLE := $(D)/$(CTX)/yml.services*
+
+ENVTMPLFILE := $(DT)/.tmpl.env/*.env
+YMLTMPLFILE_VOLUMES  := $(DT)/.tmpl.dc/*.services.yml
+YMLTMPLFILE_SERVICES := $(DT)/.tmpl.dc/*.services.yml
+
+CTX_CUR_DIR := $(shell echo $(CURRENT_DIR) | sed 's/^\.*//')
+
+ENVOUTFILE  := .env.$(CTX_CUR_DIR)
+YMLOUTFILE  := .yml.$(CTX_CUR_DIR)
+
+ifneq (,$(wildcard $(ENVFILE_ENABLED) ))
+    include $(ENVFILE_ENABLED)
+    export
+    ENV_FILE = --env-file .env
+endif
+
+PHONY := $(TARGET)
+
+all: envfile ymlfile
+
+
+# BUILD: .env.default - use link files env.* - depends on the files list '.tmpl.env/*.env'
+PHONY += envfile
+envfile: clean.env
+	@for tf in `ls $(ENVTMPLFILE)`; do \
+	\
+	ISPUT=0; \
+	CL="###############################################################################"; \
+	envName="$$( echo $${tf} | sed -e 's=.*/==' -e 's/\.[^.]*$$//')"; \
+	envFileName="env.$${envName}"; \
+	[ ! -f "$${envFileName}" ] && continue; \
+    echo "+ $${envFileName}"; \
+	for fn in $$(cat $${tf} | sed -e '/^#/d'); do \
+	[ 0 -eq "$${ISPUT}" ] && ISPUT=1 \
+	&& ( tfn="$$( echo $${tf} | sed -e 's=.*/==' -e 's/\.[^.]*$$//' -e 's/\(.*\)/\U\1/' )"; \
+	printf "%-.80s\n" "### $${tfn} $${CL}" >> $(ENVOUTFILE) );  \
+	VNAME=$$(echo $${fn} | sed -e 's|\([$(VAR_SYMBOL)]*\)={{\(.*\)}}|\1|') ; \
+	VVALUE=$$(printenv `echo $${fn} | sed -e 's|\([$(VAR_SYMBOL)]*\)={{\(.*\)}}|\2|'`) ; \
+	[ ! -z "$${VVALUE}" ] && echo "$${VNAME}=$${VVALUE}" >> $(ENVOUTFILE) ; \
+	done; \
+	printf "\n" >> $(ENVOUTFILE); \
+	\
+	done;
+
+
+
+# BUILD: .yml.default - depends on the files list '*.dc.services.yml' 
+PHONY += ymlfile
+ymlfile: yml.clean yml.volumes yml.services
+
+PHONY += yml.dc
+yml.dc:
+	@echo $@
+
+PHONY += yml.volumes
+yml.volumes:
+	@for ymltfServices in `ls $(YMLTMPLFILE_SERVICES)`; do \
+	\
+	ymlFileNameService="$$( echo $${ymltfServices} | sed -e 's=.*/==' | sed 's/^\([^\.]*\)\..*/\1/' )"; \
+	ymlFileNameAvailableVolume=".yml/yml.volumes.dc.$${ymlFileNameService}"; \
+	[ ! -f "$${ymlFileNameAvailableVolume}" ] && continue; \
+	[ ! -f "env.$${ymlFileNameService}" ] && continue; \
+	cat $${ymlFileNameAvailableVolume} >> $(YMLOUTFILE); \
+	\
+	done;
+
+PHONY += yml.services
+yml.services: 
+	@printf "\n\nservices:\n" >>  $(YMLOUTFILE); 
+	@for ymltfServices in `ls $(YMLTMPLFILE_SERVICES)`; do \
+	\
+	ymlFileNameService="$$( echo $${ymltfServices} | sed -e 's=.*/==' | sed 's/^\([^\.]*\)\..*/\1/' )"; \
+	ymlFileNameAvailableService=".yml/yml.services.dc.$${ymlFileNameService}"; \
+	[ ! -f "$${ymlFileNameAvailableService}" ] && continue; \
+	[ ! -f "env.$${ymlFileNameService}" ] && continue; \
+	ISPUT=0; \
+	CL="###############################################################################"; \
+	cat $${ymlFileNameAvailableService} >> $(YMLOUTFILE); \
+	\
+	done;
+
+# ! all!: clean all
+
+PHONY += env.clean clean.env
+env.clean: clean.env
+clean.env:
+	> $(ENVOUTFILE)
+
+PHONY += yml.clean clean.yml
+yml.clean: clean.yml
+clean.yml:
+	> $(YMLOUTFILE)
+
+PHONY += clean
+clean: clean.env clean.yml
+
+
+PHONY += srvSetVer srv.set.ver set.srv.ver service.set.version set.service.version
+srvSetVer: service_set_version
+srv.set.ver: srvSetVer
+set.srv.ver: srvSetVer
+service.set.version: srvSetVer
+set.service.version: srvSetVer
+
+
+
+PHONY += env.get.version
+env.get.version:
+ifdef ("$(wildcard $(SERVICE_NAME))","")
+	$(eval service_exist := 1)
+	@echo "1: $(SERVICE_NAME)"
+	$(eval service_exist := 0)
+	@echo "0: ${SERVICE_NAME}"
+endif
+
+
+PHONY += echoes
+echoes:
+	@echo "ENVDIR:      $(ENVDIR)";
+	@echo "ENVOUTFILE:  $(ENVOUTFILE)";
+	@echo "CURRENT_DIR: $(CURRENT_DIR)";
+	@echo "MKFILE_PATH: $(MKFILE_PATH)";
+
+#	@echo "$(CTX_CUR_DIR)";
+
+.PHONY = $(PHONY)

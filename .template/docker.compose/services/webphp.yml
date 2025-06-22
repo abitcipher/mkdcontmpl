@@ -1,0 +1,57 @@
+
+### OPEN LITE SPEED ###########################################################
+  webphp:
+    container_name: "${COMPOSE_PROJECT_NAME}_webphp"
+    hostname: webphp
+    image: webphp
+    command: sh -c "sysctl -p && /entrypoint.sh"
+    build:
+      context: ./webphp
+      args:
+        - OS_CODENAME_VERSION=${OS_CODENAME_VERSION:-buster}
+        - COMMON_GID=${COMMON_GID:-1000}
+        - COMMON_UID=${COMMON_UID:-1000}
+        - OLS_HTTP_PORT=${OLS_HTTP_PORT:-50080}
+        - OLS_HTTPS_PORT=${OLS_HTTPS_PORT:-50443}
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 4096M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+      # placement:
+      #   max_replicas_per_node: 2
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    volumes:
+      - ${APP_LOG_PATH_HOST}/webphp/sessions:/var/lib/lsphp74/sessions
+      - ${APP_LOG_PATH_HOST}/webphp/tmp/lshttpd:/tmp/lshttpd/
+      - ./webphp/config/php/7.4:/usr/local/lsws/lsphp74/etc/php/7.4/litespeed/.ini
+      - ./webphp/config/etc/limits.conf:/etc/limits.conf
+      # - ./webphp/config/etc/sysctl.conf:/etc/sysctl.conf
+      - ./webphp/config/admin_config.conf:/usr/local/lsws/admin/conf/admin_config.conf
+      - ./webphp/config/httpd_config.conf:/usr/local/lsws/conf/httpd_config.conf
+      - ./webphp/config/modpagespeed.conf:/usr/local/lsws/conf/modpagespeed.conf
+      - ./webphp/.lsws/admin/html.open/res/img/product_logo.svg:/usr/local/lsws/admin/html.open/res/img/product_logo.svg
+      # - ./webphp/config/goodwin/vhconf.conf:/usr/local/lsws/conf/vhosts/goodwin/vhconf.conf
+      # Application Folders & Config Files
+      - ./webphp/config/goodwin/goodwin.conf:/usr/local/lsws/conf/vhosts/goodwin/goodwin.conf
+      - ./webphp/config/goodwin/site.conf:/usr/local/lsws/conf/vhosts/site/site.conf
+      - ${APP_DATA_PATH_HOST}/webphp/goodwin/goodwin:/var/www/goodwin/goodwin
+      - ${APP_DATA_PATH_HOST}/webphp/goodwin/lib:/var/www/lib
+      - ${APP_LOG_PATH_HOST}/webphp/log:/var/log/
+      # Upload: Temporary File Path $VH_ROOT/tmp
+      - ${APP_DATA_PATH_HOST}/webphp/goodwin/tmp:/var/www/tmp
+    ports:
+      - "${OLS_HTTP_PORT:-50080}:50080"
+      - "50081:50081"
+      - "${OLS_HTTPS_PORT:-50443}:50443"
+    networks:
+      - backend

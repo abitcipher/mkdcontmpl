@@ -1,0 +1,22 @@
+
+### NODE-RED ##################################################################
+  nodered:
+    container_name: "${COMPOSE_PROJECT_NAME}_nodered"
+    hostname: nodered
+    image: nodered
+    build:
+      dockerfile: Dockerfile.debian
+      context: ./nodered
+    environment:
+      - TZ=Europe/Amsterdam
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    volumes:
+      - ${APP_DATA_PATH_HOST}/nodered:/data
+    ports:
+      - "1880:1880"
+    networks:
+      - backend
+      - frontend

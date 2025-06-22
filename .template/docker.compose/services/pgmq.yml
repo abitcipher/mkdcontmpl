@@ -1,0 +1,29 @@
+
+### PGMQ ######################################################################
+  pgmq:
+    container_name: "${COMPOSE_PROJECT_NAME}_pgmq"
+    hostname: pgmq
+    image: pgmq
+    build:
+      dockerfile: Dockerfile
+      context: ./pgmq
+      args:
+        - PGMQ_POSTGRESQL_URI=${PGMQ_POSTGRESQL_URI}
+        - PGMQ_AMQP_URI=${PGMQ_AMQP_URI}
+        - PGMQ_DELIVERY_MODE=${PGMQ_DELIVERY_MODE}
+        - PGMQ_BRIDGE_CHANNELS=${PGMQ_BRIDGE_CHANNELS}
+    environment:
+      PGMQ_POSTGRESQL_URI: ${PGMQ_POSTGRESQL_URI:-postgres://postgres:postgres@postgres:5432/postgres}
+      PGMQ_AMQP_URI: ${PGMQ_AMQP_URI:-amqp://rabbitmq//}
+      PGMQ_DELIVERY_MODE: ${PGMQ_DELIVERY_MODE:-NON-PERSISTENT}
+      PGMQ_BRIDGE_CHANNELS: ${PGMQ_BRIDGE_CHANNELS}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - frontend
+      - backend
