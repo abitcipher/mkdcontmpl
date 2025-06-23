@@ -16,7 +16,7 @@ Env-files from the directory `.context/$(CTX)/.environ/`  set environment variab
 | initCtx   | Create new 'context' from .default: `NEWCTX=<context>`       |
 | listCtx   | List all contexts                                          |
 | listSrv   | List all services in context                               |
-| addCtxSrv | Add service to context: `CTX=<context>` SNAME=<service>      |
+| addCtxSrv | Add service to context: `CTX=<context>` `SNAME=<service>`      |
 | rmCtxSrv  | Remove service from context: `CTX=<context>` `SNAME=<service>` |
 | buildCtx  | Build context: `CTX=<context>`                               |
 
