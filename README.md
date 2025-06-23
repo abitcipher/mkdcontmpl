@@ -1,4 +1,4 @@
-### Build 'docker-compose.yml' from templates
+### Build `docker-compose.yml` from templates
 
 Implements build 'docker-compose.yml' and '.env' files from templates. 
 The system operates with the concept of context and service.
@@ -13,12 +13,12 @@ Env-files from the directory `.context/$(CTX)/.environ/`  set environment variab
 
 | Command   | Description                                                |
 | --------- | ---------------------------------------------------------- |
-| initCtx   | Create new 'context' from .default: NEWCTX=<context>       |
+| initCtx   | Create new 'context' from .default: `NEWCTX=<context>`       |
 | listCtx   | List all contexts                                          |
 | listSrv   | List all services in context                               |
-| addCtxSrv | Add service to context: CTX=<context> SNAME=<service>      |
-| rmCtxSrv  | Remove service from context: CTX=<context> SNAME=<service> |
-| buildCtx  | Build context: CTX=<context>                               |
+| addCtxSrv | Add service to context: `CTX=<context>` SNAME=<service>      |
+| rmCtxSrv  | Remove service from context: `CTX=<context>` `SNAME=<service>` |
+| buildCtx  | Build context: `CTX=<context>`                               |
 
 ##### Example
 
