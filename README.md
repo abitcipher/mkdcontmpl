@@ -27,9 +27,14 @@ Env-files from the directory `.context/$(CTX)/.environ/`  set environment variab
 ```bash
 $ make initCtx NEWCTX=myctx
 ```
-+ Add service 'nginx' to context 'myctx' — that is, copy files from folders:
-  - '.template/docker-compose/'
-  - '.template/docker-compose.env/'
++ Add service 'nginx' to context 'myctx' — that is, copy files from folder:
+  - '.template/docker-compose/template/*.tmpl' > ./.context/myctx/.tmpl/
+
+    and create directories:
+
+  - '.context/myctx/.tmpl/'
+  - '.context/myctx/.yml/'
+  - '.context/myctx/.environ/'
 
 + Now you can edit files in directories to castomize configuration of the 'nginx' service:
 
