@@ -36,15 +36,17 @@ $ make initCtx NEWCTX=myctx
   - '.context/myctx/.yml/'
   - '.context/myctx/.environ/'
 
++ Add service 'nginx' to context 'myctx'
+```bash
+$ make addCtxSrv CTX=myctx SRV=nginx
+```
+
 + Now you can edit files in directories to castomize configuration of the 'nginx' service:
 
   - '.context/myctx/.environ/nginx.env'
   - '.context/myctx/.yml/nginx.service.env'
   - '.context/myctx/.yml/nginx.volume.env'
 
-```bash
-$ make addCtxSrv CTX=myctx SNAME=nginx
-```
 
 + Build context 'myctx' — create files
   - '.context/myctx/docker-compose.yml'
