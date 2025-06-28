@@ -67,6 +67,17 @@ $(eval _MK_CTX_DIR=$(CTX))
 $(eval _MK_CTX_PATH=$(addprefix $(_MK_DIR_PATH_CONTEXT)/, $(_MK_CTX_DIR)))
 
 
+### TEMPLATE PATHs + include pattern
+$(eval _MK_DIR_TARGET_CTX_YML_MASKED = $(subst .,\., $(subst /,\/, $(_MK_DIR_TARGET_CTX_YML))))
+
+$(eval _MK_PATH_TARGET_SERVICE_TMPL=$(addprefix $(addprefix $(_MK_CTX_PATH)/, $(_MK_DIR_TARGET_CTX_TMPL)), $(_MK_DC_TMPL_SERVICES)))
+$(eval _MK_SERVICE_MASKED_RELATIVE_FILE_PATH = ..\\/$(_MK_DIR_TARGET_CTX_YML_MASKED)$(SRV).service$(_SRV_AFFIX))
+$(eval _NEW_INCLUDE_SRV = {% include '$(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)' %})
+
+$(eval _MK_PATH_TARGET_VOLUME_TMPL=$(addprefix $(addprefix $(_MK_CTX_PATH)/, $(_MK_DIR_TARGET_CTX_TMPL)), $(_MK_DC_TMPL_VOLUMES)))
+$(eval _MK_VOLUME_MASKED_RELATIVE_FILE_PATH = ..\\/$(_MK_DIR_TARGET_CTX_YML_MASKED)$(SRV).volume$(_VOL_AFFIX))
+$(eval _NEW_INCLUDE_VOL = {% include '$(_MK_VOLUME_MASKED_RELATIVE_FILE_PATH)' %})
+
 ## 
 ## B: SERVICE PART - for service linked targets
 $(eval _SRV_SRC_FILE_NAME = $(addprefix $(SRV),$(_SRV_AFFIX)))
@@ -272,7 +283,12 @@ context_add_service: context_check_is_exists
 
 ifeq ($(filter 0,$(_CTX_SRV) $(_CTX_VOL)), )
 	@$(call _mk_warn, "SRV: '$(SRV)' already in CTX: '$(CTX)'")
-	@printf "\n "
+	@$(call _mk_help,  $(shell echo -n "\
+	'Try including it in the template using target \`enableCtxSrv\` \
+	or use \`removeCtxSrv\` for remove it from context before adding \
+	new service with the same name from \
+	default templates' | fmt -w 68"))
+	@printf "\n"
 	@exit 1;
 #?	$(call error, "CONTEX: not found...")
 endif
@@ -289,7 +305,60 @@ endif
 	else \
 		$(call _mk_err, "Unsuccessful added: '$(SRV)' - use 'resqueSrv' target for fix it..."); \
 	fi;
-	@printf "\n ";
+	@printf "\n";
+	@$(call _mk_inf, "Add service files to context template...")
+	@printf "\n";
+ifeq (,$(widcard$(_CTX_SRV_TARGET_FILE_PATH)))
+	@$(call add_service_to_ctx_tmpl)
+endif
+ifeq (,$(widcard$(_CTX_VOL_TARGET_FILE_PATH)))
+	@$(call add_volume_to_ctx_tmpl)
+endif
+
+### Printing test results
+	@_SRV_EXIST="`sed -n \"/$(_NEW_INCLUDE_SRV)/p\" $(_MK_PATH_TARGET_SERVICE_TMPL)`"; \
+	if [ "" != "$${_SRV_EXIST}" ]; then \
+		_MK_IS_CTX_SRV_ENABLED=1; \
+		$(call _mk_ok, "Service: '$(SERVICE)' added to CTX: '$(CTX)'" ); \
+	else \
+		$(call _mk_err, "FAILED: service: '$(SERVICE)' not added to CTX: '$(CTX)'" ); \
+	fi;
+
+	@_VOL_EXIST="`sed -n \"/$(_NEW_INCLUDE_VOL)/p\" $(_MK_PATH_TARGET_VOLUME_TMPL)`"; \
+	if [ "" != "$${_VOL_EXIST}" ]; then \
+		_MK_IS_CTX_VOL_ENABLED=1; \
+		$(call _mk_ok, "Volume:  '$(SERVICE)' added to CTX: '$(CTX)'" ); \
+	else \
+		$(call _mk_err, "FAILED: volume: '$(SERVICE)' not added to CTX: '$(CTX)'" ); \
+	fi;
+
+	@printf "\n";
+
+
+## Enable service to context (update 'dc.service.tmpl') - check if context exists and service file exists
+context_enable_service: context_check_is_exists
+#? service_exit_is_not_exists
+	@if [ "0" -eq "$(_MK_IS_SERVICE_EXIST)" ]; then \
+		$(call _mk_err, "SRV: '$(SRV)' service not found..."); \
+		printf "\n"; \
+		exit 1; \
+	fi;
+
+# ifeq ($(filter 0,$(_CTX_SRV) $(_CTX_VOL)), )
+# 	@$(call _mk_warn, "SRV: '$(SRV)' already in CTX: '$(CTX)'")
+# 	@printf "\n"
+# 	@exit 1;
+# #?	$(call error, "CONTEX: not found...")
+# endif
+
+## check trustworthiness of copied files
+	@if [ -f $(_CTX_SRV_TARGET_FILE_PATH) ] \
+	&& [ -f $(_CTX_VOL_TARGET_FILE_PATH) ]; then \
+		$(call _mk_ok, "Successfully added: '$(CTX)' < '$(SRV)'"); \
+	else \
+		$(call _mk_err, "Unsuccessful added: '$(SRV)' - use 'resqueSrv' target for fix it..."); \
+	fi;
+	@printf "\n";
 ifeq (,$(widcard$(_CTX_SRV_TARGET_FILE_PATH)))
 #	@$(call _mk_warn, "_CTX_SRV_TARGET_FILE_PATH: $(_CTX_SRV_TARGET_FILE_PATH)")
 	@$(call add_service_to_ctx_tmpl)
@@ -300,14 +369,69 @@ ifeq (,$(widcard$(_CTX_VOL_TARGET_FILE_PATH)))
 endif
 
 
+## Disable service from context (update 'dc.service.tmpl') - check if context exists and 
+context_disable_service: context_check_is_exists
+### process `dc.services.tmpl`
+### check included service-file from template `dc.services.tmpl`
+	@$(call is_service_in_ctx_tmpl, _MK_IS_CTX_SRV_ENABLED)
+### process `dc.volumes.tmpl`
+	@$(call is_volume_in_ctx_tmpl, _MK_IS_CTX_VOL_ENABLED)
+ 
+	@if [ "0" -eq "$(_MK_IS_CTX_SRV_ENABLED)" ]; then \
+		$(call _mk_warn, "Unknow service: '$(SERVICE)' disabled at CTX: '$(CTX)'" ); \
+		printf "\n"; \
+		if [ "0" -eq "$(_MK_IS_CTX_VOL_ENABLED)" ]; then \
+			$(shell echo -n "exit 1;") \
+		fi; \
+	fi;
+### remove included service-file from template `dc.services.tmpl`
+	$(call remove_service_from_ctx_tmpl)
+### checks if included service-file successfully removed from template `dc.services.tmpl`
+	@$(call is_service_in_ctx_tmpl, _MK_IS_CTX_SRV_EXIST)
+	@if [ "1" -eq "$(_MK_IS_CTX_SRV_EXIST)" ]; then \
+		$(call _mk_err, "FAILED: service: '$(SERVICE)' still enabled at CTX: '$(CTX)'" ); \
+	else \
+		$(call _mk_run, "Service config: '$(SERVICE)' disabled at CTX: '$(CTX)'" ); \
+	fi;
+#	@printf "\n"
+
+	@if [ "0" -eq "$(_MK_IS_CTX_VOL_ENABLED)" ]; then \
+		$(call _mk_warn, "Unknow service volume: '$(SERVICE)' disabled at CTX: '$(CTX)'" ); \
+		printf "\n"; \
+		$(shell echo -n "exit 1;") \
+	fi;
+### remove included service-file from template `dc.volumes.tmpl`
+	$(call remove_volume_from_ctx_tmpl)
+### checks if included volume-file successfully removed from template `dc.volumes.tmpl`
+	@$(call is_volume_in_ctx_tmpl, _MK_IS_CTX_VOL_EXIST)
+	@if [ "1" -eq "$(_MK_IS_CTX_VOL_EXIST)" ]; then \
+		$(call _mk_err, "FAILED: service volume: '$(SERVICE)' still enabled at CTX: '$(CTX)'" ); \
+	else \
+		$(call _mk_run, "Service volume: '$(SERVICE)' disabled at CTX: '$(CTX)'" ); \
+	fi;
+	@printf "\n"
+
+
 ## Remove service from context - check if context exists and service file exists
 context_remove_service: context_check_is_exists
 #? service_exit_is_not_exists
-	@$(call _mk_ok, "SRV: '$(SRV)'");
-
-	@if [ "0" -eq "$(_MK_IS_CTX_SERVICE_EXIST)" ]; then \
+	@$(call _mk_ok, "SRV: '$(SRV)'")
+	@$(eval _MK_REMOVE_SERVICE_ALLOWED = 0)
+### User dialog confirmation
+	@$(call _mk_inf, $(_CTX_SRV_TARGET_FILE_PATH))
+	@$(call _mk_inf, $(_CTX_VOL_TARGET_FILE_PATH))
+	@$(call _mk_inf, $(_CTX_ENV_TARGET_FILE_PATH))
+	@printf "\n"
+	@$(call _mk_warn, "Service files will be removed are you sure? [y/N] ")
+	@read answer && \
+	if [ $${answer:-'N'} = 'y' ]; then \
+		REMOVE_SERVICE_ALLOWED=1; \
+	else \
+		REMOVE_SERVICE_ALLOWED=0; \
+		$(call _mk_inf, "Canceled..."); \
+	fi; \
+	if [ "0" -eq "$(_MK_IS_CTX_SERVICE_EXIST)" ]; then \
 		$(call _mk_warn, "SRV: '$(SRV)' not found in CTX: '$(CTX)'"); \
-## checks each file that the service consists of in this context \
 		if [ "1" -eq "$(_MK_CTX_SERVICE_DISABLE_ENV)" ]; then \
 			$(call _mk_err, "Incomplete: SRV: $(SRV) in CTX: $(CTX) not found environment file"); \
 		fi; \
@@ -317,24 +441,41 @@ context_remove_service: context_check_is_exists
 		if [ "1" -eq "$(_MK_CTX_SERVICE_DISABLE_SRV)" ]; then \
 			$(call _mk_err, "Incomplete: SRV: $(SRV) in CTX: $(CTX) not found service file"); \
 		fi; \
-		printf "\n "; \
+		printf "\n"; \
 		exit 1; \
 	else \
-		$(call _mk_inf, "SRV: '$(SRV)' found in CTX: '$(CTX)'"); \
-		rm -f $(_CTX_SRV_TARGET_FILE_PATH); \
-		rm -f $(_CTX_VOL_TARGET_FILE_PATH); \
-		rm -f $(_CTX_ENV_TARGET_FILE_PATH); \
-	fi;
-## check trustworthiness of copied files
-	@if [ ! -f $(_CTX_SRV_TARGET_FILE_PATH) ] \
-	&& [ ! -f $(_CTX_VOL_TARGET_FILE_PATH) ]; then \
-		$(call _mk_ok, "Successfully removed: $(SRV)"); \
+		if [ "1" -eq "$${REMOVE_SERVICE_ALLOWED}" ]; then \
+			$(call _mk_inf, "SRV: '$(SRV)' found in CTX: '$(CTX)'"); \
+			rm -f $(_CTX_SRV_TARGET_FILE_PATH); \
+			rm -f $(_CTX_VOL_TARGET_FILE_PATH); \
+			rm -f $(_CTX_ENV_TARGET_FILE_PATH); \
+			if [ ! -f $(_CTX_SRV_TARGET_FILE_PATH) ]  \
+			&& [ ! -f $(_CTX_VOL_TARGET_FILE_PATH) ]  \
+			&& [ ! -f $(_CTX_ENV_TARGET_FILE_PATH) ]; \
+			then \
+				$(call _mk_ok, "Successfully removed: $(SRV)"); \
+			else \
+				$(call _mk_err, "Unsuccessful operation: $(SRV) - use 'resqueSrv' target for fix it..."); \
+			fi; \
+		fi; \
+	fi; \
+	printf "\n"; \
+	if [ -f "$(_MK_PATH_TARGET_SERVICE_TMPL)" ]; then \
+		[ "1" -eq "$${REMOVE_SERVICE_ALLOWED}" ] \
+		&& sed -i "/$(_NEW_INCLUDE_SRV)/d" $(_MK_PATH_TARGET_SERVICE_TMPL); \
 	else \
-		$(call _mk_err, "Unsuccessful operation: $(SRV) - use 'resqueSrv' target for fix it..."); \
+		$(call _mk_err, "UNKNOWN SRV:    '$(SRV)'"); \
+		$(call _mk_err, "NOT FOUND FILE: $(_MK_PATH_TARGET_SERVICE_TMPL)"); \
+	fi; \
+	if [ -f "$(_MK_PATH_TARGET_VOLUME_TMPL)" ]; then \
+		[ "1" -eq "$${REMOVE_SERVICE_ALLOWED}" ] \
+		&& sed -i "/$(_NEW_INCLUDE_VOL)/d" $(_MK_PATH_TARGET_VOLUME_TMPL); \
+	else \
+		$(call _mk_err, "UNKNOWN SRV:    '$(SRV)'"); \
+		$(call _mk_err, "NOT FOUND FILE: $(_MK_PATH_TARGET_SERVICE_TMPL)"); \
 	fi;
-	$(call remove_service_from_ctx_tmpl)
-	$(call remove_volume_from_ctx_tmpl)
-	@printf "\n "
+	@printf "\n"
+
 
 ## Build final files - create result .yml & .env
 context_build: context_check_is_exists
@@ -376,8 +517,50 @@ context_build: context_check_is_exists
 	@printf "\n"
 
 
+context_print_vars:
+ifeq (printvar,$(LOG_MODE))
+	@printf "\n"
+	@printf "\n_MKFILE_CONTEXT_ROOT_DIR_PATH: |%s|" $(_MKFILE_CONTEXT_ROOT_DIR_PATH)
+	@printf "\n_MKFILE_CONTEXT_DIR_MKFILE: |%s|" $(_MKFILE_CONTEXT_DIR_MKFILE)
+#	@printf "\n_MKFILE_CONTEXT_REL_PATH: |%s|" $(_MKFILE_CONTEXT_REL_PATH)
+	@printf "\n_MK_DIR_PATH_MKFILE: |%s|" $(_MK_DIR_PATH_MKFILE)
+# @printf "\n _SRV:$(SRV)"
+# @printf "\n _SRV_SRC_FILE_NAME:$(_SRV_SRC_FILE_NAME)"
+# @printf "\n _VOL_SRC_FILE_NAME:$(_VOL_SRC_FILE_NAME)"
+# @printf "\n _SRV_TARGET_FILE_NAME:$(_SRV_TARGET_FILE_NAME)"
+# @printf "\n _VOL_TARGET_FILE_NAME:$(_VOL_TARGET_FILE_NAME)"
+# @printf "\n _SRV_SRC_FILE_PATH: $(_SRV_SRC_FILE_PATH)"
+# @printf "\n _VOL_SRC_FILE_PATH: $(_VOL_SRC_FILE_PATH)"
+	@printf "\n"
+	@printf "\n_MK_IS_CONTEX_EXIST: |%s|" $(_MK_IS_CONTEX_EXIST)
+	@printf "\n_MK_IS_SERVICE_EXIST: |%s|" $(_MK_IS_SERVICE_EXIST)
+	@printf "\n_MK_NO_CTX_CHECK_EARLY_EXIT: |%s|" $(_MK_NO_CTX_CHECK_EARLY_EXIT)
+	@printf "\n_MK_DEF_ENV_DIR: |%s|" $(_MK_DEF_ENV_DIR)
+	@printf "\n_MK_CTX_PATH: |%s|" $(_MK_CTX_PATH)
+	@printf "\n_MK_DIR_TARGET_CTX_YML: |%s|" $(_MK_DIR_TARGET_CTX_YML)
+	@printf "\n_CTX_TARGET_YML_PATH: |%s|" $(_CTX_TARGET_YML_PATH)
+#	@printf "\n_MK_CTX_PATH: %s..." $(_MK_CTX_PATH)
+	@printf "\n_MK_DIR_TARGET_CTX_YML: |%s|" $(_MK_DIR_TARGET_CTX_YML)
+	@printf "\n_CTX_TARGET_YML_PATH: |%s|" $(_CTX_TARGET_YML_PATH)
+	@printf "\n_CTX_SRV_TARGET_FILE_PATH: |%s|" $(_CTX_SRV_TARGET_FILE_PATH)
+	@printf "\n_CTX_VOL_TARGET_FILE_PATH: |%s|" $(_CTX_VOL_TARGET_FILE_PATH)
+	@printf "\n_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE: |%s|" $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE)
+	@printf "\n_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES: |%s|" $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES)
+	@printf "\n_CTX_SRV_TARGET_FILE_PATH: |%s|" $(_CTX_SRV_TARGET_FILE_PATH)
+	@printf "\n_MK_DIR_PATH_TARGET_CTX_TMPL: |%s|" $(_MK_DIR_PATH_TARGET_CTX_TMPL)
+	@printf "\n_MK_DIR_PATH_TARGET_CTX_YML: |%s|" $(_MK_DIR_PATH_TARGET_CTX_YML)
+	@printf "\n_MK_DIR_PATH_TARGET_CTX_ENV: |%s|" $(_MK_DIR_PATH_TARGET_CTX_ENV)
+	@printf "\n"
+	@printf "\n_MK_PATH_TARGET_SERVICE_TMPL: |%s|" $(_MK_PATH_TARGET_SERVICE_TMPL)
+	@printf "\n_MK_DIR_TARGET_CTX_YML_MASKED: |%s|" $(_MK_DIR_TARGET_CTX_YML_MASKED)
+	@printf "\n_MK_SERVICE_MASKED_RELATIVE_FILE_PATH: |%s|" $(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)
+	@printf "\n_NEW_INCLUDE_SRV: |%s|" $(_NEW_INCLUDE_SRV)		
+endif
+	@printf "\n"
+
 ## Print variables - directory, context, and relative path
 .PHONY: context-test
 context.test:
 	@$(call _mk_inf,  "$@")
 	@printf "\n"
+

@@ -28,6 +28,8 @@ endif
 ##
 _MK_DIR_THIS_MAKEFILE := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
+#?_MK_IS_CTX_SRV_EXIST = 9
+
 ## INCLUSE BASE ENV-file `.envmake` OR SET DEFAULT
 ifneq (,$(wildcard .envmake))
     _ENVMAKE_FILE_EXIST = 1
@@ -106,7 +108,7 @@ test-%:
 ### ---
 
 .PHONY: help
-help: ##@other Show this help
+help: ## Show this help
 	@$(MAKE) --no-print-directory checkdeps ## > /dev/null
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
@@ -126,7 +128,7 @@ checkdeps:
 
 # CHECK: - is directory (context) present
 @PHONY: isCtx ctx.check check.ctx
-isCtx: context_check_is_exists ##@other Check is 'context' exists: CTX=<context>
+isCtx: context_check_is_exists ## Check is  'context'  exists: CTX=<context>
 	@$(call _mk_run, "Context exist: '$(CTX)'" );
 	@printf "\n"
 isCTX: isCtx
@@ -137,7 +139,7 @@ ctx.check: isCtx
 
 # INIT: new context - create directory (context) & copy files from '.default'
 @PHONY: initCtx init.ctx ctx.init new.ctx ctx.new
-initCtx: context_init ##@other Create new 'context' from .default: NEWCTX=<context>
+initCtx: context_init ## Create new 'context'-folder: CTX=<context>
 initCTX: initCtx
 init.ctx: initCtx
 ctx.init: initCtx
@@ -148,46 +150,77 @@ ctx.new: initCtx
 
 # ADD: add context - add `env` for directory (context) & copy files from '.default'
 # @PHONY: addCtx add.ctx ctx.add
-# addCtx: context_add ##@other Add new 'env' from .default for CTX=<context>
+# addCtx: context_add ## Add new 'env' from .default for CTX=<context>
 
-listCtx: context_list ##@other List all contexts
+listCtx: context_list ## List all contexts
 listCTX: listCtx
 list.ctx: listCtx
 ctx.list: listCtx
 
-rmCtx: context_remove ##@other Remove context: CTX=<context>
+rmCtx: context_remove ## Remove 'context'-folder:     CTX=<context>
 rmCTX: rmCtx
 rm.ctx: rmCtx
 ctx.rm: rmCtx
 
 
-isSrv: service_check_is_exists ##@other Check is 'service' exists: SNAME=<service>
-	@$(call _mk_run, "Service exist: '$(SERVICE)'" );
+isSrv: ## Check is 'service'  template exists: SRV=<service>
+ifeq (1, $(_MK_IS_SERVICE_EXIST))
+	@$(call _mk_run, "Service exist: '$(SERVICE)'" )
+	@$(call _mk_inf, "$(_MK_SRV_PATH)")
+else
+	@$(call _mk_warn, "Service not exist: '$(SERVICE)'" )
+endif
 	@printf "\n"
+
+
 isSRV: isSrv
 
-listSrv: service_list ##@other List all services in context
+isCtxSrv: context_check_is_exists ## Check is service in context: CTX=<context> SRV=<service>
+	@$(call is_service_in_ctx_tmpl, _MK_IS_CTX_SRV_EXIST)
+
+	@if [ "1" -eq "$(_MK_IS_CTX_SRV_EXIST)" ]; then \
+		$(call _mk_run, "Service: '$(SERVICE)' enabled at CTX: '$(CTX)'" ); \
+	else \
+		$(call _mk_err, "Service: '$(SERVICE)' disabled at CTX: '$(CTX)'" ); \
+	fi;
+	@printf "\n"	
+
+listSrv: service_list ## List all services in context
 listSRV: listSrv
 
-addCtxSrv:   context_add_service ##@other Add service to context: CTX=<context> SNAME=<service> [SARGS=<service_args>]
+addCtxSrv:   context_add_service ## Add service to context:      CTX=<context> SRV=<service> [SARGS=<service_args>]
 add.ctx.srv: addCtxSrv
 ctx.add.srv: addCtxSrv
 srv.add.ctx: addCtxSrv
 srv.ctx.add: addCtxSrv
 
+isCtxSrvEnabled:
+	@$(call _mk_run, "isCtxSrvEnabled: '$(SERVICE)'" );
+	@printf "\n"
+	@$(call is_service_in_ctx_tmpl)
 
-rmCtxSrv: context_remove_service ##@other Remove service from context: CTX=<context> SNAME=<service>
+
+enableCtxSrv: context_enable_service ## Enable service in context:   CTX=<context> SRV=<service>
+enable.ctx.srv: enableCtxSrv
+ctx.enable.srv: enableCtxSrv
+
+disableCtxSrv: context_disable_service ## Disable service in context:  CTX=<context> SRV=<service>
+disable.ctx.srv: disableCtxSrv
+ctx.disable.srv: disableCtxSrv
+
+
+rmCtxSrv: context_remove_service ## Remove service from context: CTX=<context> SRV=<service>
 rm.ctx.srv: rmCtxSrv
 ctx.rm.srv: rmCtxSrv
 srv.rm.ctx: rmCtxSrv
 srv.ctx.rm: rmCtxSrv
 
-rescueCtxSrv: is_context_contain_service_entire ##@other Check and resque service files
+rescueCtxSrv: is_context_contain_service_entire ## Check and resque service files
 resqueCtxSrv: rescueCtxSrv
 rescue.ctx.srv: rescueCtxSrv
 ctx.rescue.srv: rescueCtxSrv
 srv.ctx.rescue: rescueCtxSrv
 
-buildCtx: context_build ##@other Build context: CTX=<context>
+buildCtx: context_build ## Build context: CTX=<context> - create 'docker-compose.yml' & '.env' files
 build.ctx: buildCtx
 ctx.build: buildCtx

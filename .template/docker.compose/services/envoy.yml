@@ -7,7 +7,7 @@
       dockerfile: Dockerfile
       context: ./envoy
       args:
-        - ENVOY_VERSION=${ENVOY_VERSION:-1.21.2}
+        - ENVOY_VERSION=${ENVOY_VERSION:-1.34.1}
     volumes:
       - ./envoy/conf:/etc/envoy
       - ${APP_LOG_PATH_HOST}/envoy/envoy_admin.log:/var/log/envoy_admin.log

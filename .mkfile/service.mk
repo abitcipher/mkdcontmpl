@@ -82,4 +82,31 @@ $(_MK_IS_SERVICE_EXIST)
 endef
 
 
+define is_service_in_ctx_tmpl
+$(eval _MK_PATH_TARGET_SERVICE_TMPL= $(addprefix $(_MK_DIR_PATH_TARGET_CTX_TMPL), $(_MK_DC_TMPL_SERVICES)))
 
+$(eval _MK_SERVICE_RELATIVE_FILE_PATH =$(addprefix ../, $(addprefix $(addprefix $(addprefix $(_MK_DIR_TARGET_CTX_YML), $(SRV)), .service), $(_SRV_AFFIX))))
+$(eval _MK_SERVICE_MASKED_RELATIVE_FILE_PATH = $(subst /,\/, $(_MK_SERVICE_RELATIVE_FILE_PATH)))
+$(eval _NEW_INCLUDE_SRV = {% include '$(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)' %})
+
+$(eval _MK_IS_PATH_TARGET_SERVICE_TMPL_ALREADY_WITH_SERVICE = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_SRV)/p\" $(_MK_PATH_TARGET_SERVICE_TMPL)`" ) )
+
+$(eval _MK_IS_CTX_SRV_EXIST= $(shell echo -n "`[ \"\" = \"$(_MK_IS_PATH_TARGET_SERVICE_TMPL_ALREADY_WITH_SERVICE)\" ] &&  printf \"0\" || printf \"1\";`"))
+
+$(eval $(1) = $(_MK_IS_CTX_SRV_EXIST))
+
+endef
+
+
+define is_volume_in_ctx_tmpl
+$(eval _MK_PATH_TARGET_VOLUME_TMPL= $(addprefix $(_MK_DIR_PATH_TARGET_CTX_TMPL), $(_MK_DC_TMPL_VOLUMES)))
+
+$(eval _MK_VOLUME_RELATIVE_FILE_PATH =$(addprefix ../, $(addprefix $(addprefix $(addprefix $(_MK_DIR_TARGET_CTX_YML), $(SRV)), .volume), $(_SRV_AFFIX))))
+$(eval _MK_VOLUME_MASKED_RELATIVE_FILE_PATH = $(subst /,\/, $(_MK_VOLUME_RELATIVE_FILE_PATH)))
+$(eval _NEW_INCLUDE_VOL = {% include '$(_MK_VOLUME_MASKED_RELATIVE_FILE_PATH)' %})
+$(eval _MK_IS_PATH_TARGET_VOLUME_TMPL_ALREADY_WITH_VOLUME = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_VOL)/p\" $(_MK_PATH_TARGET_VOLUME_TMPL)`" ) )
+
+$(eval _MK_IS_CTX_VOL_EXIST= $(shell echo -n "`[ \"\" = \"$(_MK_IS_PATH_TARGET_VOLUME_TMPL_ALREADY_WITH_VOLUME)\" ] &&  printf \"0\" || printf \"1\";`"))
+$(eval $(1) = $(_MK_IS_CTX_VOL_EXIST))
+
+endef
