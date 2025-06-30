@@ -58,6 +58,7 @@ NEWSERVICE  := $(SRV)
 NEWSRV := $(SRV)
 endif
 
+### Aliase, set service name
 define get_service =
 $(SRV)
 endef
@@ -81,32 +82,79 @@ define is_service_exists =
 $(_MK_IS_SERVICE_EXIST)
 endef
 
-
+### Checks if the service-file of some service included in the context template - added into `dc.services.tmpl`
 define is_service_in_ctx_tmpl
-$(eval _MK_PATH_TARGET_SERVICE_TMPL= $(addprefix $(_MK_DIR_PATH_TARGET_CTX_TMPL), $(_MK_DC_TMPL_SERVICES)))
-
-$(eval _MK_SERVICE_RELATIVE_FILE_PATH =$(addprefix ../, $(addprefix $(addprefix $(addprefix $(_MK_DIR_TARGET_CTX_YML), $(SRV)), .service), $(_SRV_AFFIX))))
-$(eval _MK_SERVICE_MASKED_RELATIVE_FILE_PATH = $(subst /,\/, $(_MK_SERVICE_RELATIVE_FILE_PATH)))
-$(eval _NEW_INCLUDE_SRV = {% include '$(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)' %})
-
-$(eval _MK_IS_PATH_TARGET_SERVICE_TMPL_ALREADY_WITH_SERVICE = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_SRV)/p\" $(_MK_PATH_TARGET_SERVICE_TMPL)`" ) )
-
-$(eval _MK_IS_CTX_SRV_EXIST= $(shell echo -n "`[ \"\" = \"$(_MK_IS_PATH_TARGET_SERVICE_TMPL_ALREADY_WITH_SERVICE)\" ] &&  printf \"0\" || printf \"1\";`"))
+$(eval _MK_IS_PATH_TARGET_SERVICE_TMPL_ALREADY_WITH_SERVICE = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_SRV_REGEX)/p\" $(_MK_PATH_TARGET_SERVICE_TMPL)`" ) )
+$(eval _MK_IS_CTX_SRV_EXIST= $(shell echo -n "`[ \"\" = \"$(_MK_IS_PATH_TARGET_SERVICE_TMPL_ALREADY_WITH_SERVICE)\" ] &&  echo -n \"0\" || echo -n \"1\";`"))
 
 $(eval $(1) = $(_MK_IS_CTX_SRV_EXIST))
-
 endef
 
-
+### Checks if the volume-file of some service included in the context template - added into `dc.volumes.tmpl`
 define is_volume_in_ctx_tmpl
-$(eval _MK_PATH_TARGET_VOLUME_TMPL= $(addprefix $(_MK_DIR_PATH_TARGET_CTX_TMPL), $(_MK_DC_TMPL_VOLUMES)))
+$(eval _MK_IS_PATH_TARGET_VOLUME_TMPL_ALREADY_WITH_VOLUME = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_VOL_REGEX)/p\" $(_MK_PATH_TARGET_VOLUME_TMPL)`" ) )
+$(eval _MK_IS_CTX_VOL_EXIST= $(shell echo -n "`[ \"\" = \"$(_MK_IS_PATH_TARGET_VOLUME_TMPL_ALREADY_WITH_VOLUME)\" ] &&  echo -n \"0\" || echo -n \"1\";`"))
 
-$(eval _MK_VOLUME_RELATIVE_FILE_PATH =$(addprefix ../, $(addprefix $(addprefix $(addprefix $(_MK_DIR_TARGET_CTX_YML), $(SRV)), .volume), $(_SRV_AFFIX))))
-$(eval _MK_VOLUME_MASKED_RELATIVE_FILE_PATH = $(subst /,\/, $(_MK_VOLUME_RELATIVE_FILE_PATH)))
-$(eval _NEW_INCLUDE_VOL = {% include '$(_MK_VOLUME_MASKED_RELATIVE_FILE_PATH)' %})
-$(eval _MK_IS_PATH_TARGET_VOLUME_TMPL_ALREADY_WITH_VOLUME = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_VOL)/p\" $(_MK_PATH_TARGET_VOLUME_TMPL)`" ) )
-
-$(eval _MK_IS_CTX_VOL_EXIST= $(shell echo -n "`[ \"\" = \"$(_MK_IS_PATH_TARGET_VOLUME_TMPL_ALREADY_WITH_VOLUME)\" ] &&  printf \"0\" || printf \"1\";`"))
 $(eval $(1) = $(_MK_IS_CTX_VOL_EXIST))
+endef
+
+
+
+### Updates the context template by adding a reference to the `service` file
+define add_service_to_ctx_tmpl 
+$(eval _MK_IS_PATH_TARGET_SERVICE_TMPL_ALREADY_WITH_SERVICE = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_SRV_REGEX)/p\" $(_MK_PATH_TARGET_SERVICE_TMPL)`" ) )
+
+$(shell echo -n "if [ ! -f \"$(_CTX_SRV_TARGET_FILE_PATH)\" ]; then \
+  printf \"\\\nUNKNOWN SRV:    '$(SRV)'\\\nNOT FOUND FILE: $(_CTX_SRV_TARGET_FILE_PATH)\\\n\"; \
+  else \
+    if [ \"\" = \"$(_MK_IS_PATH_TARGET_SERVICE_TMPL_ALREADY_WITH_SERVICE)\" ]; then \
+      sed -i \"/{{SERVICES}}/s//$(_NEW_INCLUDE_SRV)\\\n{{SERVICES}}/\" $(_MK_PATH_TARGET_SERVICE_TMPL); \
+    else \
+      printf \"Already  exist: SRV:  |%s| \\\n\" $(SRV); \
+    fi; \
+  fi; "; 
+)
 
 endef
+
+### Updates the context template by adding a reference to the `volume` file
+define add_volume_to_ctx_tmpl 
+$(eval _MK_IS_PATH_TARGET_VOLUME_TMPL_ALREADY_WITH_VOLUME = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_VOL_REGEX)/p\" $(_MK_PATH_TARGET_VOLUME_TMPL)`" ) )
+
+$(shell echo -n "if [ ! -f \"$(_CTX_VOL_TARGET_FILE_PATH)\" ]; then \
+  printf \"\\\nUNKNOWN SRV:    '$(SRV)'\\\nNOT FOUND FILE: $(_CTX_VOL_TARGET_FILE_PATH)\\\n\"; \
+  else \
+    if [ \"\" = \"$(_MK_IS_PATH_TARGET_VOLUME_TMPL_ALREADY_WITH_VOLUME)\" ]; then \
+      sed -i \"/{{VOLUMES}}/s//$(_NEW_INCLUDE_VOL)\\\n{{VOLUMES}}/\" $(_MK_PATH_TARGET_VOLUME_TMPL); \
+    else \
+      printf \"Already  exist: VOL:  |%s| \\\n\" $(SRV); \
+    fi; \
+  fi; "; 
+)
+
+endef
+
+### Removes the reference to the `service` file from the context template
+define remove_service_from_ctx_tmpl 
+$(shell [ -f $(_MK_PATH_TARGET_SERVICE_TMPL) ] \
+  && sed -i "/$(_NEW_INCLUDE_SRV_REGEX)/d" $(_MK_PATH_TARGET_SERVICE_TMPL) \
+  || echo -n "printf \"\\\nUNKNOWN SRV:    '$(SRV)'\\\nNOT FOUND FILE: $(_MK_PATH_TARGET_SERVICE_TMPL)\\\n\"; \
+  exit 1; ")
+endef
+
+### Removes the reference to the `volume` file from the context template
+define remove_volume_from_ctx_tmpl 
+$(shell [ -f $(_MK_PATH_TARGET_VOLUME_TMPL) ] \
+  && sed -i "/$(_NEW_INCLUDE_VOL_REGEX)/d" $(_MK_PATH_TARGET_VOLUME_TMPL) \
+  || echo -n "printf \"\\\nUNKNOWN SRV:    '$(SRV)'\\\nNOT FOUND FILE: $(_MK_PATH_TARGET_VOLUME_TMPL)\\\n\"; \
+  exit 1; ")
+endef
+
+### Prints the available services at default template directory
+service_list:
+	@$(call _mk_inf, "Search at: $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES)");
+	@printf "\n\n"
+	@$(shell echo -n "ls -1 $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES) | sed  '/$(_SRV_AFFIX)/s///' | sort | pr -4 -t ; ")
+	@printf "\n"
+
+

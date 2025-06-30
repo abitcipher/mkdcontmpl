@@ -11,14 +11,16 @@ Env-files from the directory `.context/$(CTX)/.environ/`  set environment variab
 
 ##### Main commands (makefile targets)
 
-| Command   | Description                                                |
-| --------- | ---------------------------------------------------------- |
-| initCtx   | Create new 'context' from .default: `NEWCTX=<context>`       |
-| listCtx   | List all contexts                                          |
-| listSrv   | List all services in context                               |
-| addCtxSrv | Add service to context: `CTX=<context>` `SNAME=<service>`      |
-| rmCtxSrv  | Remove service from context: `CTX=<context>` `SNAME=<service>` |
-| buildCtx  | Build context: `CTX=<context>`                               |
+| Command       | Description                                                    |
+| ------------- | -------------------------------------------------------------- |
+| initCtx       | Create new 'context' from .default: `NEWCTX=<context>`         |
+| listCtx       | List all contexts                                              |
+| listSrv       | List all services in context                                   |
+| addCtxSrv     | Add service to context:      `CTX=<context>` `SNAME=<service>` |
+| enableCtxSrv  | Enable service in context:   `CTX=<context> SRV=<service>`     |
+| disableCtxSrv | Disable service in context:  `CTX=<context> SRV=<service>`     |
+| rmCtxSrv      | Remove service from context: `CTX=<context>` `SNAME=<service>` |
+| buildCtx      | Build context: `CTX=<context>`                                 |
 
 ##### Example
 

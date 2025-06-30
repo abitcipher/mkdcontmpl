@@ -152,17 +152,20 @@ ctx.new: initCtx
 # @PHONY: addCtx add.ctx ctx.add
 # addCtx: context_add ## Add new 'env' from .default for CTX=<context>
 
+
+# Prints exists contexts names
 listCtx: context_list ## List all contexts
 listCTX: listCtx
 list.ctx: listCtx
 ctx.list: listCtx
 
+# Remove context - remove directory (context) & remove files
 rmCtx: context_remove ## Remove 'context'-folder:     CTX=<context>
 rmCTX: rmCtx
 rm.ctx: rmCtx
 ctx.rm: rmCtx
 
-
+# Checks is exist service with given name
 isSrv: ## Check is 'service'  template exists: SRV=<service>
 ifeq (1, $(_MK_IS_SERVICE_EXIST))
 	@$(call _mk_run, "Service exist: '$(SERVICE)'" )
@@ -175,6 +178,7 @@ endif
 
 isSRV: isSrv
 
+# Checks whether a service with the specified name exists in the specified context
 isCtxSrv: context_check_is_exists ## Check is service in context: CTX=<context> SRV=<service>
 	@$(call is_service_in_ctx_tmpl, _MK_IS_CTX_SRV_EXIST)
 
@@ -185,42 +189,57 @@ isCtxSrv: context_check_is_exists ## Check is service in context: CTX=<context> 
 	fi;
 	@printf "\n"	
 
+# Prints the list of know services
 listSrv: service_list ## List all services in context
 listSRV: listSrv
 
+
+# Adds service to context - copy service template files (<SRV>.yml; <SRV>.env) to context (direcotry) 
+# and update CTX template files: `dc.services.tmpl` and `dc.volumes.tmpl`
 addCtxSrv:   context_add_service ## Add service to context:      CTX=<context> SRV=<service> [SARGS=<service_args>]
 add.ctx.srv: addCtxSrv
 ctx.add.srv: addCtxSrv
 srv.add.ctx: addCtxSrv
 srv.ctx.add: addCtxSrv
 
+
+# Checks is service-file included to context service-template (`dc.services.tmpl`)
 isCtxSrvEnabled:
 	@$(call _mk_run, "isCtxSrvEnabled: '$(SERVICE)'" );
 	@printf "\n"
 	@$(call is_service_in_ctx_tmpl)
 
 
+# Includes service file to context service-template (`dc.services.tmpl`)
 enableCtxSrv: context_enable_service ## Enable service in context:   CTX=<context> SRV=<service>
 enable.ctx.srv: enableCtxSrv
 ctx.enable.srv: enableCtxSrv
 
+
+# Excludes service file from services-template (`dc.services.tmpl`) for given context <CTX>
 disableCtxSrv: context_disable_service ## Disable service in context:  CTX=<context> SRV=<service>
 disable.ctx.srv: disableCtxSrv
 ctx.disable.srv: disableCtxSrv
 
-
+# Removes service from context - remove service files (<SRV>.yml; <SRV>.env) from context (directory)
+# and clear services and volumes templates: `dc.services.tmpl` and `dc.volumes.tmpl`
 rmCtxSrv: context_remove_service ## Remove service from context: CTX=<context> SRV=<service>
 rm.ctx.srv: rmCtxSrv
 ctx.rm.srv: rmCtxSrv
 srv.rm.ctx: rmCtxSrv
 srv.ctx.rm: rmCtxSrv
 
+
+# Try to rescue some syntax errors, tries to eliminate discrepancies (WIP)
 rescueCtxSrv: is_context_contain_service_entire ## Check and resque service files
 resqueCtxSrv: rescueCtxSrv
 rescue.ctx.srv: rescueCtxSrv
 ctx.rescue.srv: rescueCtxSrv
 srv.ctx.rescue: rescueCtxSrv
 
+
+# Build context - create 'docker-compose.yml' & '.env' files
 buildCtx: context_build ## Build context: CTX=<context> - create 'docker-compose.yml' & '.env' files
 build.ctx: buildCtx
 ctx.build: buildCtx
+

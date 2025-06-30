@@ -71,12 +71,19 @@ $(eval _MK_CTX_PATH=$(addprefix $(_MK_DIR_PATH_CONTEXT)/, $(_MK_CTX_DIR)))
 $(eval _MK_DIR_TARGET_CTX_YML_MASKED = $(subst .,\., $(subst /,\/, $(_MK_DIR_TARGET_CTX_YML))))
 
 $(eval _MK_PATH_TARGET_SERVICE_TMPL=$(addprefix $(addprefix $(_MK_CTX_PATH)/, $(_MK_DIR_TARGET_CTX_TMPL)), $(_MK_DC_TMPL_SERVICES)))
-$(eval _MK_SERVICE_MASKED_RELATIVE_FILE_PATH = ..\\/$(_MK_DIR_TARGET_CTX_YML_MASKED)$(SRV).service$(_SRV_AFFIX))
+# $(eval _MK_SERVICE_MASKED_RELATIVE_FILE_PATH = ..\\/$(_MK_DIR_TARGET_CTX_YML_MASKED)$(SRV).service$(_SRV_AFFIX))
+$(eval _MK_SERVICE_MASKED_RELATIVE_FILE_PATH = $(addprefix ..\\/, $(addprefix $(_MK_DIR_TARGET_CTX_YML_MASKED), $(addprefix $(SRV), $(addprefix .service, $(_SRV_AFFIX))))))
 $(eval _NEW_INCLUDE_SRV = {% include '$(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)' %})
+$(eval _NEW_INCLUDE_SRV_REGEX = {\%[\\ \t]\{1,\}include[\\ \t]\{1,\}'$(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)'[\\ \t]\{1,\}\%})
+
 
 $(eval _MK_PATH_TARGET_VOLUME_TMPL=$(addprefix $(addprefix $(_MK_CTX_PATH)/, $(_MK_DIR_TARGET_CTX_TMPL)), $(_MK_DC_TMPL_VOLUMES)))
-$(eval _MK_VOLUME_MASKED_RELATIVE_FILE_PATH = ..\\/$(_MK_DIR_TARGET_CTX_YML_MASKED)$(SRV).volume$(_VOL_AFFIX))
+# $(eval _MK_VOLUME_MASKED_RELATIVE_FILE_PATH = ..\\/$(_MK_DIR_TARGET_CTX_YML_MASKED)$(SRV).volume$(_VOL_AFFIX))
+$(eval _MK_VOLUME_MASKED_RELATIVE_FILE_PATH = $(addprefix ..\\/, $(addprefix $(_MK_DIR_TARGET_CTX_YML_MASKED), $(addprefix $(SRV), $(addprefix .volume, $(_VOL_AFFIX))))))
 $(eval _NEW_INCLUDE_VOL = {% include '$(_MK_VOLUME_MASKED_RELATIVE_FILE_PATH)' %})
+$(eval _NEW_INCLUDE_VOL_REGEX = {\%[\\ \t]\{1,\}include[\\ \t]\{1,\}'$(_MK_VOLUME_MASKED_RELATIVE_FILE_PATH)'[\\ \t]\{1,\}\%})
+
+
 
 ## 
 ## B: SERVICE PART - for service linked targets
@@ -316,7 +323,7 @@ ifeq (,$(widcard$(_CTX_VOL_TARGET_FILE_PATH)))
 endif
 
 ### Printing test results
-	@_SRV_EXIST="`sed -n \"/$(_NEW_INCLUDE_SRV)/p\" $(_MK_PATH_TARGET_SERVICE_TMPL)`"; \
+	@_SRV_EXIST="`sed -n \"/$(_NEW_INCLUDE_SRV_REGEX)/p\" $(_MK_PATH_TARGET_SERVICE_TMPL)`"; \
 	if [ "" != "$${_SRV_EXIST}" ]; then \
 		_MK_IS_CTX_SRV_ENABLED=1; \
 		$(call _mk_ok, "Service: '$(SERVICE)' added to CTX: '$(CTX)'" ); \
@@ -324,7 +331,7 @@ endif
 		$(call _mk_err, "FAILED: service: '$(SERVICE)' not added to CTX: '$(CTX)'" ); \
 	fi;
 
-	@_VOL_EXIST="`sed -n \"/$(_NEW_INCLUDE_VOL)/p\" $(_MK_PATH_TARGET_VOLUME_TMPL)`"; \
+	@_VOL_EXIST="`sed -n \"/$(_NEW_INCLUDE_VOL_REGEX)/p\" $(_MK_PATH_TARGET_VOLUME_TMPL)`"; \
 	if [ "" != "$${_VOL_EXIST}" ]; then \
 		_MK_IS_CTX_VOL_ENABLED=1; \
 		$(call _mk_ok, "Volume:  '$(SERVICE)' added to CTX: '$(CTX)'" ); \
@@ -353,7 +360,7 @@ context_enable_service: context_check_is_exists
 
 ## check trustworthiness of copied files
 	@if [ -f $(_CTX_SRV_TARGET_FILE_PATH) ] \
-	&& [ -f $(_CTX_VOL_TARGET_FILE_PATH) ]; then \
+	&&  [ -f $(_CTX_VOL_TARGET_FILE_PATH) ]; then \
 		$(call _mk_ok, "Successfully added: '$(CTX)' < '$(SRV)'"); \
 	else \
 		$(call _mk_err, "Unsuccessful added: '$(SRV)' - use 'resqueSrv' target for fix it..."); \
@@ -376,7 +383,7 @@ context_disable_service: context_check_is_exists
 	@$(call is_service_in_ctx_tmpl, _MK_IS_CTX_SRV_ENABLED)
 ### process `dc.volumes.tmpl`
 	@$(call is_volume_in_ctx_tmpl, _MK_IS_CTX_VOL_ENABLED)
- 
+
 	@if [ "0" -eq "$(_MK_IS_CTX_SRV_ENABLED)" ]; then \
 		$(call _mk_warn, "Unknow service: '$(SERVICE)' disabled at CTX: '$(CTX)'" ); \
 		printf "\n"; \
@@ -459,7 +466,6 @@ context_remove_service: context_check_is_exists
 			fi; \
 		fi; \
 	fi; \
-	printf "\n"; \
 	if [ -f "$(_MK_PATH_TARGET_SERVICE_TMPL)" ]; then \
 		[ "1" -eq "$${REMOVE_SERVICE_ALLOWED}" ] \
 		&& sed -i "/$(_NEW_INCLUDE_SRV)/d" $(_MK_PATH_TARGET_SERVICE_TMPL); \
@@ -489,11 +495,11 @@ context_build: context_check_is_exists
 	@printf "\n"
 
 	@$(eval _TMPL_INCLUDE_PATTERN = {%\ include\ .*\.yml\/\([^\/]*\)\.service\.yml.*\ %})
-#	$(shell echo -n "@echo \"_TMPL_INCLUDE_PATTERN:|$(_TMPL_INCLUDE_PATTERN)|\" ")
 
 	$(eval _MK_FN_DC_DEFAULT_INCLUDED_YML = $(shell cat $(_MK_PATH_TARGET_SERVICE_TMPL) \
 			| grep include \
 			| sed "/$(_TMPL_INCLUDE_PATTERN)/s//\1.env/"))
+
 ##  Create empty .env file
 	@$(shell echo -n "$(TRUNCATE) -s 0 $(_TARGET_CTX_ENVIRONMENT_FILE_PATH)")
 
@@ -516,47 +522,6 @@ context_build: context_check_is_exists
 	fi; ")
 	@printf "\n"
 
-
-context_print_vars:
-ifeq (printvar,$(LOG_MODE))
-	@printf "\n"
-	@printf "\n_MKFILE_CONTEXT_ROOT_DIR_PATH: |%s|" $(_MKFILE_CONTEXT_ROOT_DIR_PATH)
-	@printf "\n_MKFILE_CONTEXT_DIR_MKFILE: |%s|" $(_MKFILE_CONTEXT_DIR_MKFILE)
-#	@printf "\n_MKFILE_CONTEXT_REL_PATH: |%s|" $(_MKFILE_CONTEXT_REL_PATH)
-	@printf "\n_MK_DIR_PATH_MKFILE: |%s|" $(_MK_DIR_PATH_MKFILE)
-# @printf "\n _SRV:$(SRV)"
-# @printf "\n _SRV_SRC_FILE_NAME:$(_SRV_SRC_FILE_NAME)"
-# @printf "\n _VOL_SRC_FILE_NAME:$(_VOL_SRC_FILE_NAME)"
-# @printf "\n _SRV_TARGET_FILE_NAME:$(_SRV_TARGET_FILE_NAME)"
-# @printf "\n _VOL_TARGET_FILE_NAME:$(_VOL_TARGET_FILE_NAME)"
-# @printf "\n _SRV_SRC_FILE_PATH: $(_SRV_SRC_FILE_PATH)"
-# @printf "\n _VOL_SRC_FILE_PATH: $(_VOL_SRC_FILE_PATH)"
-	@printf "\n"
-	@printf "\n_MK_IS_CONTEX_EXIST: |%s|" $(_MK_IS_CONTEX_EXIST)
-	@printf "\n_MK_IS_SERVICE_EXIST: |%s|" $(_MK_IS_SERVICE_EXIST)
-	@printf "\n_MK_NO_CTX_CHECK_EARLY_EXIT: |%s|" $(_MK_NO_CTX_CHECK_EARLY_EXIT)
-	@printf "\n_MK_DEF_ENV_DIR: |%s|" $(_MK_DEF_ENV_DIR)
-	@printf "\n_MK_CTX_PATH: |%s|" $(_MK_CTX_PATH)
-	@printf "\n_MK_DIR_TARGET_CTX_YML: |%s|" $(_MK_DIR_TARGET_CTX_YML)
-	@printf "\n_CTX_TARGET_YML_PATH: |%s|" $(_CTX_TARGET_YML_PATH)
-#	@printf "\n_MK_CTX_PATH: %s..." $(_MK_CTX_PATH)
-	@printf "\n_MK_DIR_TARGET_CTX_YML: |%s|" $(_MK_DIR_TARGET_CTX_YML)
-	@printf "\n_CTX_TARGET_YML_PATH: |%s|" $(_CTX_TARGET_YML_PATH)
-	@printf "\n_CTX_SRV_TARGET_FILE_PATH: |%s|" $(_CTX_SRV_TARGET_FILE_PATH)
-	@printf "\n_CTX_VOL_TARGET_FILE_PATH: |%s|" $(_CTX_VOL_TARGET_FILE_PATH)
-	@printf "\n_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE: |%s|" $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE)
-	@printf "\n_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES: |%s|" $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES)
-	@printf "\n_CTX_SRV_TARGET_FILE_PATH: |%s|" $(_CTX_SRV_TARGET_FILE_PATH)
-	@printf "\n_MK_DIR_PATH_TARGET_CTX_TMPL: |%s|" $(_MK_DIR_PATH_TARGET_CTX_TMPL)
-	@printf "\n_MK_DIR_PATH_TARGET_CTX_YML: |%s|" $(_MK_DIR_PATH_TARGET_CTX_YML)
-	@printf "\n_MK_DIR_PATH_TARGET_CTX_ENV: |%s|" $(_MK_DIR_PATH_TARGET_CTX_ENV)
-	@printf "\n"
-	@printf "\n_MK_PATH_TARGET_SERVICE_TMPL: |%s|" $(_MK_PATH_TARGET_SERVICE_TMPL)
-	@printf "\n_MK_DIR_TARGET_CTX_YML_MASKED: |%s|" $(_MK_DIR_TARGET_CTX_YML_MASKED)
-	@printf "\n_MK_SERVICE_MASKED_RELATIVE_FILE_PATH: |%s|" $(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)
-	@printf "\n_NEW_INCLUDE_SRV: |%s|" $(_NEW_INCLUDE_SRV)		
-endif
-	@printf "\n"
 
 ## Print variables - directory, context, and relative path
 .PHONY: context-test
