@@ -69,16 +69,16 @@ The main utility on which the Jinja template engine depends is
 
 The scripts also use standard Unix utilities : 
 
-| Command           | Description                                                                             |
-| ----------------- | --------------------------------------------------------------------------------------- |
-| *`minijinja-cli`* | a powerful but minimal dependency template engine for Rust compatible with Jinja/Jinja2 |
-| `sed`             | stream editor for filtering and transforming text                                       |
-| `cp`              | copy files and directories                                                              |
-| `ln -s`           | make links between files                                                                |
-| `mkdir`           | make a directory                                                                        |
-| `sort`            | sort lines of text files                                                                |
-| `truncate`        | shrink or extend the size of a file to the specified size                               |
-| `uniq`            | report or omit repeated lines                                                           |
+| Command         | Description                                                                             |
+| --------------- | --------------------------------------------------------------------------------------- |
+| `minijinja-cli` | a powerful but minimal dependency template engine for Rust compatible with Jinja/Jinja2 |
+| `sed`           | stream editor for filtering and transforming text                                       |
+| `cp`            | copy files and directories                                                              |
+| `ln -s`         | make links between files                                                                |
+| `mkdir`         | make a directory                                                                        |
+| `sort`          | sort lines of text files                                                                |
+| `truncate`      | shrink or extend the size of a file to the specified size                               |
+| `uniq`          | report or omit repeated lines                                                           |
 
 #### Installation
 
