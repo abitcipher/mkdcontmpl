@@ -9,20 +9,20 @@ at the `.context/$(CTX)/.tmpl` folder for build `docker-compose.yml`.
 Yml-files from the `.context/$(CTX)/.yml/` directory describe the services available for this context, every file `$(SRV).service.yml` describe some service with name `$(SRV)` .
 Env-files from the directory `.context/$(CTX)/.environ/`  set environment variables for each service  `$(SRV).env` .
 
-##### Main commands (makefile targets)
+#### Main commands (makefile targets)
 
 | Command       | Description                                                    |
 | ------------- | -------------------------------------------------------------- |
 | initCtx       | Create new 'context' from .default: `NEWCTX=<context>`         |
 | listCtx       | List all contexts                                              |
 | listSrv       | List all services in context                                   |
-| addCtxSrv     | Add service to context:      `CTX=<context>` `SNAME=<service>` |
-| enableCtxSrv  | Enable service in context:   `CTX=<context> SRV=<service>`     |
-| disableCtxSrv | Disable service in context:  `CTX=<context> SRV=<service>`     |
-| rmCtxSrv      | Remove service from context: `CTX=<context>` `SNAME=<service>` |
+| addCtxSrv     | Add service to context:      `CTX=<context>` `SRV=<service>`   |
+| enableCtxSrv  | Enable service in context:   `CTX=<context>` `SRV=<service>`   |
+| disableCtxSrv | Disable service in context:  `CTX=<context>` `SRV=<service>`   |
+| rmCtxSrv      | Remove service from context: `CTX=<context>` `SRV=<service>`   |
 | buildCtx      | Build context: `CTX=<context>`                                 |
 
-##### Example
+#### Example
 
 + Initialize context 'myctx' from template '.default'
   
@@ -58,7 +58,7 @@ $ make addCtxSrv CTX=myctx SRV=nginx
 $ make buildCtx CTX=myctx
 ```
 
-##### Dependency
+#### Dependencies
 
 The main utility on which the Jinja template engine depends is  
 —  [MiniJinja](https://github.com/mitsuhiko/minijinja)
@@ -77,7 +77,7 @@ The scripts also use standard Unix utilities :
 | uniq          | report or omit repeated lines                              |
 
 
-##### Installation
+#### Installation
 
 + [MiniJinja](https://github.com/mitsuhiko/minijinja) 
 
