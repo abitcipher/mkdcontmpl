@@ -62,6 +62,12 @@ else
     _MK_DC_TMPL_MAIN     ?= dc.tmpl
     _MK_DC_TMPL_VOLUMES  ?= dc.volumes.tmpl
 
+    _MK_DC_TMPL_DEFAULT_ENV ?= .default.env
+    _MK_DC_DEFAULT_ENV   ?= default.env
+
+    _MK_FN_DC_DEFAULT_YML ?= docker-compose.yml
+    _MK_FN_DC_DEFAULT_ENV ?= .env
+
     _MK_DIR_TEMPLATE_DOCKER_COMPOSE = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE)
     _MK_DIR_TEMPLATE_DOCKER_COMPOSE_ENV = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE_ENV)
     _MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES = $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE)$(_MK_DIR_YML_SERVICES)
@@ -191,6 +197,12 @@ isCtxSrv: context_check_is_exists ## Check is service in context: CTX=<context> 
 
 # Prints the list of know services
 listSrv: service_list ## List all services in context
+listAllSrv: listSrv
+srv.all: listSrv
+list.srv: listSrv
+srv.list: listSrv
+srv.list.all: listSrv
+srv.listAll: listSrv
 listSRV: listSrv
 
 
@@ -220,6 +232,21 @@ ctx.enable.srv: enableCtxSrv
 disableCtxSrv: context_disable_service ## Disable service in context:  CTX=<context> SRV=<service>
 disable.ctx.srv: disableCtxSrv
 ctx.disable.srv: disableCtxSrv
+
+
+# List services in context - prints list of services in context (directory)
+listAllCtxSrv: context_all_service_list ## List services in context: CTX=<context>
+list.ctx.all.srv: listAllCtxSrv
+ctx.list.srv.all: listAllCtxSrv
+srv.all.ctx.list: listAllCtxSrv
+srv.all.list.ctx: listAllCtxSrv
+
+# List enabled services - prints list of added services in context file `dc.services.tmpl`
+listEnabledCtxSrv: context_enabled_service_list ## List enabled services in context: CTX=<context>
+list.ctx.enabled.srv: listEnabledCtxSrv
+ctx.list.srv.enabled: listEnabledCtxSrv
+srv.enabled.ctx.list: listEnabledCtxSrv
+srv.enabled.list.ctx: listEnabledCtxSrv
 
 # Removes service from context - remove service files (<SRV>.yml; <SRV>.env) from context (directory)
 # and clear services and volumes templates: `dc.services.tmpl` and `dc.volumes.tmpl`

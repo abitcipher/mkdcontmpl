@@ -69,12 +69,16 @@ $(eval _MK_CTX_PATH=$(addprefix $(_MK_DIR_PATH_CONTEXT)/, $(_MK_CTX_DIR)))
 
 ### TEMPLATE PATHs + include pattern
 $(eval _MK_DIR_TARGET_CTX_YML_MASKED = $(subst .,\., $(subst /,\/, $(_MK_DIR_TARGET_CTX_YML))))
+$(eval _MK_DIR_PATH_RELATIVE_ALL_CTX_SERVICE_FILES_MASKED = $(addprefix ..\\/, $(_MK_DIR_TARGET_CTX_YML_MASKED)  ))
 
 $(eval _MK_PATH_TARGET_SERVICE_TMPL=$(addprefix $(addprefix $(_MK_CTX_PATH)/, $(_MK_DIR_TARGET_CTX_TMPL)), $(_MK_DC_TMPL_SERVICES)))
 # $(eval _MK_SERVICE_MASKED_RELATIVE_FILE_PATH = ..\\/$(_MK_DIR_TARGET_CTX_YML_MASKED)$(SRV).service$(_SRV_AFFIX))
 $(eval _MK_SERVICE_MASKED_RELATIVE_FILE_PATH = $(addprefix ..\\/, $(addprefix $(_MK_DIR_TARGET_CTX_YML_MASKED), $(addprefix $(SRV), $(addprefix .service, $(_SRV_AFFIX))))))
 $(eval _NEW_INCLUDE_SRV = {% include '$(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)' %})
 $(eval _NEW_INCLUDE_SRV_REGEX = {\%[\\ \t]\{1,\}include[\\ \t]\{1,\}'$(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)'[\\ \t]\{1,\}\%})
+
+#$(eval _NEW_INCLUDE_ALL_SRV_REGEX = {\%[\\\ \\t]\{1,\}include[\\\ \\t]\{1,\}.*\/\([^\\.\\/\\"]*\)\.service$(_SRV_AFFIX).*[\\\ \\t]\{1,\}\%})
+
 
 
 $(eval _MK_PATH_TARGET_VOLUME_TMPL=$(addprefix $(addprefix $(_MK_CTX_PATH)/, $(_MK_DIR_TARGET_CTX_TMPL)), $(_MK_DC_TMPL_VOLUMES)))
@@ -110,6 +114,7 @@ $(eval _MK_DIR_PATH_TARGET_CTX_YML  = $(addprefix $(_MK_CTX_PATH)/, $(_MK_DIR_TA
 $(eval _MK_DIR_PATH_TARGET_CTX_ENV  = $(addprefix $(_MK_CTX_PATH)/, $(_MK_DIR_TARGET_CTX_ENV)))
 $(eval _MK_DIR_PATH_TARGET_CTX_TMPL = $(addprefix $(_MK_CTX_PATH)/, $(_MK_DIR_TARGET_CTX_TMPL)))
 
+$(eval _MK_PATH_TARGET_CTX_DEFAULT_ENV_FILE = $(addprefix $(_MK_DIR_PATH_TARGET_CTX_ENV), $(_MK_DC_DEFAULT_ENV)))
 
 _MK_CTX_SERVICE_DISABLE_ENV := 0
 _MK_CTX_SERVICE_DISABLE_VOL := 0
@@ -203,23 +208,54 @@ else
 	@$(shell $(MKDIR) $(_MK_DIR_PATH_TARGET_CTX_ENV))
 
 	@$(shell $(CP) $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE)/* $(_MK_DIR_PATH_TARGET_CTX_TMPL))
+
+### Make `defailt.env` file using jinja2 template `.default.env`
+	@$(shell echo -n "$(JINJA) -D COMPOSE_PROJECT_NAME=$(CTX) -D COMPOSE_ENV_FILES=$(_MK_FN_DC_DEFAULT_ENV)\
+				$(addprefix $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_ENV)/,  $(_MK_DC_TMPL_DEFAULT_ENV)") \
+			\>	$(_MK_PATH_TARGET_CTX_DEFAULT_ENV_FILE) )
+
 ##  ?copy empty defaault files?	
 	@$(if $(wildcard  $(_MK_DIR_PATH_TARGET_CTX_TMPL)), $(call _mk_inf, "CTX: template added"), $(call _mk_err, "CTX: $(_MK_DIR_PATH_TARGET_CTX_TMPL) - failed to copy template files...") )
 	@$(call _mk_done, "initcontext: $(_MK_CTX_PATH)")
 	@printf "\n"
 endif
 
+
 ## Get context - print path to context directory
 context_get: context_check_is_exists
 	@$(call _mk_inf, "CTX @: $(_MK_CTX_PATH)")
 	@printf "\n" 
+
 
 ## List all contexts - print in two columns
 context_list:
 	@$(SHELL) -c "ls -1 $(_MK_DIR_PATH_CONTEXT) | sort | pr -2 -t"
 	@printf "\n";
 
-## Remove context - remove directory with context files
+
+### Prints the available services at context
+context_all_service_list: context_check_is_exists
+	@$(call _mk_inf, "Search at: $(_MK_DIR_PATH_TARGET_CTX_YML)");
+	@printf "\n\n"
+	@$(shell echo -n "ls -1 $(_MK_DIR_PATH_TARGET_CTX_YML) \
+			| sed  -E '/$(_SRV_AFFIX)/s///g; \
+					/\.service/s///g; \
+					/\.volume/s///g;' \
+			| uniq | sort | pr -4 -t ; ")
+	@printf "\n"
+
+
+### Show list of services included in context `dc.service.tmpl`-file
+context_enabled_service_list: context_check_is_exists
+	@$(call _mk_inf, "Search at: $(_MK_PATH_TARGET_SERVICE_TMPL)");
+	@printf "\n\n"
+	@$(shell echo -n "$(CAT) $(_MK_PATH_TARGET_SERVICE_TMPL) \
+			| sed  -n '/{\%[\\ \\\t]\{1,\}include[\\ \\\t]\{1,\}[\x27\x22]\{1\}$(_MK_DIR_PATH_RELATIVE_ALL_CTX_SERVICE_FILES_MASKED)\(.*\)\.service$(_SRV_AFFIX)[\x27\x22]\{1\}[\\\ \\\t]\{1,\}\%}/s//[+] \\\1/p' | sort ; " )
+
+	@printf "\n"
+
+
+### Remove context - remove directory with context files
 context_remove: context_check_is_exists
 ifeq (1,$(call is_context_exists))
 	@$(call _mk_inf, "$(CTX)");
@@ -502,6 +538,9 @@ context_build: context_check_is_exists
 
 ##  Create empty .env file
 	@$(shell echo -n "$(TRUNCATE) -s 0 $(_TARGET_CTX_ENVIRONMENT_FILE_PATH)")
+	@$(shell echo -n "[ -f $(_MK_PATH_TARGET_CTX_DEFAULT_ENV_FILE) ] \
+						&& $(CAT) $(_MK_PATH_TARGET_CTX_DEFAULT_ENV_FILE) >> $(_TARGET_CTX_ENVIRONMENT_FILE_PATH) \
+						|| printf 'ERROR: Not found: |%s|\\\\n\\\\n' $(_MK_PATH_TARGET_CTX_DEFAULT_ENV_FILE) ; ")
 
 ##  Include $(SRV).env files, which are included in main template - and build final '.env' file
 	@$(foreach envFile, $(_MK_FN_DC_DEFAULT_INCLUDED_YML), \
@@ -521,6 +560,28 @@ context_build: context_check_is_exists
 		printf \"$(_MK_COLOR_TERM_RED)ERROR: $(_MK_COLOR_TERM_WHITE)Unsuccessful build: CTX: '%s' - '%s' file filed...$(_MK_COLOR_TERM_RESET)\" $(CTX) $(_MK_FN_DC_DEFAULT_ENV) ; \
 	fi; ")
 	@printf "\n"
+	@if [ ! -f "$(_MK_PATH_TARGET_CTX_DEFAULT_ENV_FILE)" ]; then \
+		$(call _mk_help,  $(shell echo -n "\
+		'File integrity is compromised. The base file for initializing environment variables was not found. \
+		 This means that the build may not work or work incorrectly because this variables may not be set: \
+		 {{COMPOSE_PROJECT_NAME}} and {{COMPOSE_ENV_FILES}}' \
+		| fmt -w 68")); \
+		printf "\n"; \
+	else \
+		echo -n "yes"; \
+	fi;
+#	@$(if $(wildcard  $(_TARGET_CTX_DOCKER_COMPOSE_FILE_PATH)), $(call _mk_inf, "1.CTX: created"), $(call _mk_inf, "2.CTX:  - failed..." ) )
+# ifeq ($(shell echo -n "[ -f $(_TARGET_CTX_DOCKER_COMPOSE_FILE_PATH) ] && echo -n yes"),yes)
+# 	@$(call _mk_help, "1HHELP")
+# else
+# 	@$(call _mk_help, "2HHELP")
+# endif
+# ifeq ($(wildcard $(_TARGET_CTX_DOCKER_COMPOSE_FILE_PATH),))
+# 	$(call _mk_help, "HHELP");
+# endif
+# @if [ ! -f "$(_TARGET_CTX_DOCKER_COMPOSE_FILE_PATH)" ]; then \
+# 	$(call _mk_help, "HHELP"); \
+# fi;
 
 
 ## Print variables - directory, context, and relative path

@@ -1,6 +1,6 @@
 ### Build `docker-compose.yml` from templates
 
-Implements build 'docker-compose.yml' and '.env' files from templates. 
+Implements build `docker-compose.yml` and `.env` files from templates. 
 The system operates with the concept of context and service.
 
 Context — is a directory with a name set by the environment variable `CTX`, context-directory is located at the `.context` folder.
@@ -30,17 +30,17 @@ Env-files from the directory `.context/$(CTX)/.environ/`  set environment variab
 $ make initCtx NEWCTX=myctx
 ```
 
-+ Add service 'nginx' to context 'myctx' — that is, copy files from folder:
++ Add service `nginx`to context `myctx` — that is, copy files from folder:
   
-  - '.template/docker-compose/template/*.tmpl' > ./.context/myctx/.tmpl/
+  - `.template/docker-compose/template/*.tmpl` > ./.context/myctx/.tmpl/
     
     and create directories:
   
-  - '.context/myctx/.tmpl/'
+  - `.context/myctx/.tmpl/`
   
-  - '.context/myctx/.yml/'
+  - `.context/myctx/.yml/`
   
-  - '.context/myctx/.environ/'
+  - `.context/myctx/.environ/`
 
 + Add service 'nginx' to context 'myctx'
   
@@ -50,13 +50,13 @@ $ make initCtx NEWCTX=myctx
 
 + Now you can edit files in directories to castomize configuration of the 'nginx' service:
   
-  - '.context/myctx/.environ/nginx.env'
-  - '.context/myctx/.yml/nginx.service.env'
-  - '.context/myctx/.yml/nginx.volume.env'
+  - `.context/myctx/.environ/nginx.env`
+  - `.context/myctx/.yml/nginx.service.env`
+  - `.context/myctx/.yml/nginx.volume.env`
 
-+ Build context 'myctx' — create files
-  - '.context/myctx/docker-compose.yml'
-  - '.context/myctx/.env'
++ Build context `myctx` — create files
+  - `.context/myctx/docker-compose.yml`
+  - `.context/myctx/.env`
 
 ```bash
 $ make buildCtx CTX=myctx
@@ -69,16 +69,16 @@ The main utility on which the Jinja template engine depends is
 
 The scripts also use standard Unix utilities : 
 
-| Command         | Description                                                                             |
-| --------------- | --------------------------------------------------------------------------------------- |
-| `minijinja-cli` | a powerful but minimal dependency template engine for Rust compatible with Jinja/Jinja2 |
-| `sed`           | stream editor for filtering and transforming text                                       |
-| `cp`            | copy files and directories                                                              |
-| `ln -s`         | make links between files                                                                |
-| `mkdir`         | make a directory                                                                        |
-| `sort`          | sort lines of text files                                                                |
-| `truncate`      | shrink or extend the size of a file to the specified size                               |
-| `uniq`          | report or omit repeated lines                                                           |
+| Command                      | Description                                                                             |
+| ---------------------------- | --------------------------------------------------------------------------------------- |
+| <nobr>`minijinja-cli`</nobr> | a powerful but minimal dependency template engine for Rust compatible with Jinja/Jinja2 |
+| `sed`                        | stream editor for filtering and transforming text                                       |
+| `cp`                         | copy files and directories                                                              |
+| `ln -s`                      | make links between files                                                                |
+| `mkdir`                      | make a directory                                                                        |
+| `sort`                       | sort lines of text files                                                                |
+| `truncate`                   | shrink or extend the size of a file to the specified size                               |
+| `uniq`                       | report or omit repeated lines                                                           |
 
 #### Installation
 

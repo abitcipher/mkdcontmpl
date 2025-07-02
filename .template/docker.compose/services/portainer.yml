@@ -3,13 +3,14 @@
   portainer:
     container_name: "${COMPOSE_PROJECT_NAME}_portainer"
     hostname: portainer
-    build:
-      dockerfile: Dockerfile
-      context: ./portainer
-      args:
-        - PORTAINER_VERSION=${PORTAINER_VERSION:-2.16.2}
-        - PORTAINER_API_PORT=${PORTAINER_UI_PORT:-8010}
-        - PORTAINER_UI_PORT=${PORTAINER_UI_PORT:-9010}
+    image: portainer/portainer-ce:latest
+#    build:
+#      dockerfile: Dockerfile
+#      context: ./portainer
+#      args:
+#        - PORTAINER_VERSION=${PORTAINER_VERSION:-2.27.8}
+#        - PORTAINER_API_PORT=${PORTAINER_UI_PORT:-8010}
+#        - PORTAINER_UI_PORT=${PORTAINER_UI_PORT:-9010}
     restart: unless-stopped
     command: -H unix:///var/run/docker.sock --admin-password $$2y$$05$$7UqWQA/8ViEJ.ziKMMzDYuMu1piQnasFyjMlx4JDelFDTOqUiBzyS --logo brand-logo.svg
     volumes:

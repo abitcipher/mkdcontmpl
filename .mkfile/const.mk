@@ -1,14 +1,17 @@
-_ENV := env
-_YML := yml
+_ENV  := env
 _TMPL := tmpl
+_YML  := yml
+
 
 AWK   := awk
-LN    := ln -s
+CAT   := cat
 CP    := cp
 EGREP := egrep
+JINJA := minijinja-cli
+LN    := ln -s
 MKDIR := mkdir
 SED   := sed
 SORT  := sort
 TOUCH := touch
-JINJA := minijinja-cli
 TRUNCATE := truncate
+
