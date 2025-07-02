@@ -567,21 +567,8 @@ context_build: context_check_is_exists
 		 {{COMPOSE_PROJECT_NAME}} and {{COMPOSE_ENV_FILES}}' \
 		| fmt -w 68")); \
 		printf "\n"; \
-	else \
-		echo -n "yes"; \
 	fi;
-#	@$(if $(wildcard  $(_TARGET_CTX_DOCKER_COMPOSE_FILE_PATH)), $(call _mk_inf, "1.CTX: created"), $(call _mk_inf, "2.CTX:  - failed..." ) )
-# ifeq ($(shell echo -n "[ -f $(_TARGET_CTX_DOCKER_COMPOSE_FILE_PATH) ] && echo -n yes"),yes)
-# 	@$(call _mk_help, "1HHELP")
-# else
-# 	@$(call _mk_help, "2HHELP")
-# endif
-# ifeq ($(wildcard $(_TARGET_CTX_DOCKER_COMPOSE_FILE_PATH),))
-# 	$(call _mk_help, "HHELP");
-# endif
-# @if [ ! -f "$(_TARGET_CTX_DOCKER_COMPOSE_FILE_PATH)" ]; then \
-# 	$(call _mk_help, "HHELP"); \
-# fi;
+
 
 
 ## Print variables - directory, context, and relative path
