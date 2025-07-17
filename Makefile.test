@@ -59,23 +59,34 @@ include $(_MK_FILE_FULLNAME_INCLUDE_LIST)
 .PHONY: all
 test:
 	@echo "_MK_FILE_KEYMAP :|$(_MK_FILE_KEYMAP)|"
-	@printf "\n[keys list]\n"
+
+	@printf "\n[ keys list ]\n"
+	@echo "0               :|$(call keymap_key_list)|"
 	@echo "test            :|$(call keymap_key_list,test)|"
 	@echo "url|subdir      :|$(call keymap_key_list,url|subdir)|"
-	@printf "\n[empty value]\n"
+
+	@printf "\n[ empty 'test' value ]\n"
 	@echo "test            :|$(call keymap_val,test)|"
-	@printf "\n[key sublevel]\n"
+
+	@printf "\n[ key 'test' sublevel ]\n"
 	@echo "test|key        :|$(call keymap_val,test|key)|"
 	@echo "test|oneline    :|$(call keymap_val,test|oneline)|"
 	@echo "test|multiline  :|$(call keymap_val,test|multiline)|"
-	@printf "\n[key value]\n"
+
+	@printf "\n[ key 'testkv' value ]\n"
 	@echo "testkv          :|$(call keymap_val,testkv)|"
 	@printf "\n"
+
+	@printf "\n[ key 'url'  sublevel]\n"
 	@echo "url             :|$(call keymap_key_list,url)|"
 	@echo "url|subdir      :|$(call keymap_val,url|subdir)|"
 	@echo "url|subdir|slug :|$(call keymap_val,url|subdir|slug)|"
 	@printf "\n"
-	@echo "md5sum:|$(call keymap_val,md5sum)|"
+
+	@printf "\n[ key 'md5sum' value ]\n"
+	@echo "md5sum          :|$(call keymap_val,md5sum)|"
+
+	@$(call kv_set,"md5sumKey",)
 
 testenv:
 	

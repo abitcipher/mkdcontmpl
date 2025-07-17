@@ -45,6 +45,7 @@ else
     _MK_DIR_TEST   ?= .test/
     _MK_DIR_TEMPLATE ?= .template/
     _MK_DIR_CONTEXT  ?= .context/
+    _MK_DIR_KVDB     ?= .kvdb/
 
     _MK_DIR_DOCKER_COMPOSE ?= docker.compose/
     _MK_DIR_DOCKER_COMPOSE_ENV ?= docker.compose.env/
@@ -63,10 +64,11 @@ else
     _MK_DC_TMPL_VOLUMES  ?= dc.volumes.tmpl
 
     _MK_DC_TMPL_DEFAULT_ENV ?= .default.env
-    _MK_DC_DEFAULT_ENV   ?= default.env
+    _MK_DC_DEFAULT_ENV      ?= default.env
 
-    _MK_FN_DC_DEFAULT_YML ?= docker-compose.yml
-    _MK_FN_DC_DEFAULT_ENV ?= .env
+    _MK_FN_DC_DEFAULT_YML   ?= docker-compose.yml
+    _MK_FN_DC_DEFAULT_ENV   ?= .env
+    _MK_FN_DEFAULT_KVDB     ?= kv.db.txt
 
     _MK_DIR_TEMPLATE_DOCKER_COMPOSE = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE)
     _MK_DIR_TEMPLATE_DOCKER_COMPOSE_ENV = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE_ENV)
@@ -90,6 +92,9 @@ _MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_ENV = $(realpath $(_MK_DIR_TEMPLATE_DOCKER_
 _MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES = $(realpath $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES))
 _MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_VOLUMES = $(realpath $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_VOLUMES))
 _MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE = $(realpath $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE))
+
+_NK_FN_PATH_RELATIVE_KVDB ?= $(call addprefix, $(_MK_DIR_KVDB), $(_MK_FN_DEFAULT_KVDB))
+_MK_FN_PATH_KVDB ?= $(realpath $(_NK_FN_PATH_RELATIVE_KVDB))
 
 ## INCLUDE LIBRARY mk-files
 _MK_FILE_NAME_INCLUDE_LIST := const.mk io.console.mk condition.mk context.mk service.mk help.mk
@@ -203,7 +208,15 @@ list.srv: listSrv
 srv.list: listSrv
 srv.list.all: listSrv
 srv.listAll: listSrv
+srvList: listSrv
 listSRV: listSrv
+
+listSrvVersion: service_version_list ## List services with versions: CTX=<context> SRV=<pattern>
+list.srv.ver: listSrvVersion
+srv.list.ver: listSrvVersion
+srv.ver.list: listSrvVersion
+listSrvVer: listSrvVersion
+srvVerList: listSrvVersion
 
 
 # Adds service to context - copy service template files (<SRV>.yml; <SRV>.env) to context (direcotry) 
@@ -235,7 +248,7 @@ ctx.disable.srv: disableCtxSrv
 
 
 # List services in context - prints list of services in context (directory)
-listAllCtxSrv: context_all_service_list ## List services in context: CTX=<context>
+listAllCtxSrv: context_all_service_list ## List services in context:    CTX=<context>
 list.ctx.all.srv: listAllCtxSrv
 ctx.list.srv.all: listAllCtxSrv
 srv.all.ctx.list: listAllCtxSrv
@@ -270,3 +283,6 @@ buildCtx: context_build ## Build context: CTX=<context> - create 'docker-compose
 build.ctx: buildCtx
 ctx.build: buildCtx
 
+
+help.%:
+	@printf "HELP"

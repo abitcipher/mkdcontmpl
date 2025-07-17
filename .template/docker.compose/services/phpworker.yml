@@ -16,7 +16,8 @@
         - _LOWER_UID=${_LOWER_UID}
         - _UPPER_GID=${_UPPER_GID}
         - _UPPER_UID=${_UPPER_UID}
-        - PHP_VERSION=${PHP_VERSION}
+#        - PHP_VERSION=${PHP_VERSION}
+        - PHP_VERSION=${PHPWORKER_VERSION}
         - PHP_SHA256=${PHP_SHA256}
 #        - PHP_GPG_KEYS=${PHP_GPG_KEYS}
         - APP_CODE_PATH=${APP_CODE_PATH:-/var/www}

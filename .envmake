@@ -8,6 +8,8 @@ _MK_DIR_MKFILE ?= .mkfile/
 _MK_DIR_TEST   ?= .test/
 _MK_DIR_TEMPLATE ?= .template/
 _MK_DIR_CONTEXT  ?= .context/
+_MK_DIR_KVDB ?= .kvdb/
+
 _MK_DIR_DOCKER_COMPOSE ?= docker.compose/
 _MK_DIR_DOCKER_COMPOSE_ENV ?= docker.compose.env/
 _MK_DIR_YML_SERVICES ?= services/
@@ -31,6 +33,7 @@ _MK_DC_DEFAULT_ENV ?= default.env
 
 _MK_FN_DC_DEFAULT_YML ?= docker-compose.yml
 _MK_FN_DC_DEFAULT_ENV ?= .env
+_MK_FN_DEFAULT_KVDB   ?= kv.db.txt
 
 _MK_DIR_TEMPLATE_DOCKER_COMPOSE = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE)
 _MK_DIR_TEMPLATE_DOCKER_COMPOSE_ENV = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE_ENV)

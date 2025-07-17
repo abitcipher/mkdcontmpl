@@ -101,7 +101,7 @@ endef
 
 
 ### Updates the context template by adding a reference to the `service` file
-define add_service_to_ctx_tmpl 
+define add_service_to_ctx_tmpl
 $(eval _MK_IS_PATH_TARGET_SERVICE_TMPL_ALREADY_WITH_SERVICE = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_SRV_REGEX)/p\" $(_MK_PATH_TARGET_SERVICE_TMPL)`" ) )
 
 $(shell echo -n "if [ ! -f \"$(_CTX_SRV_TARGET_FILE_PATH)\" ]; then \
@@ -112,13 +112,13 @@ $(shell echo -n "if [ ! -f \"$(_CTX_SRV_TARGET_FILE_PATH)\" ]; then \
     else \
       printf \"Already  exist: SRV:  |%s| \\\n\" $(SRV); \
     fi; \
-  fi; "; 
+  fi; ";
 )
 
 endef
 
 ### Updates the context template by adding a reference to the `volume` file
-define add_volume_to_ctx_tmpl 
+define add_volume_to_ctx_tmpl
 $(eval _MK_IS_PATH_TARGET_VOLUME_TMPL_ALREADY_WITH_VOLUME = $(shell echo -n "`sed -n \"/$(_NEW_INCLUDE_VOL_REGEX)/p\" $(_MK_PATH_TARGET_VOLUME_TMPL)`" ) )
 
 $(shell echo -n "if [ ! -f \"$(_CTX_VOL_TARGET_FILE_PATH)\" ]; then \
@@ -129,13 +129,13 @@ $(shell echo -n "if [ ! -f \"$(_CTX_VOL_TARGET_FILE_PATH)\" ]; then \
     else \
       printf \"Already  exist: VOL:  |%s| \\\n\" $(SRV); \
     fi; \
-  fi; "; 
+  fi; ";
 )
 
 endef
 
 ### Removes the reference to the `service` file from the context template
-define remove_service_from_ctx_tmpl 
+define remove_service_from_ctx_tmpl
 $(shell [ -f $(_MK_PATH_TARGET_SERVICE_TMPL) ] \
   && sed -i "/$(_NEW_INCLUDE_SRV_REGEX)/d" $(_MK_PATH_TARGET_SERVICE_TMPL) \
   || echo -n "printf \"\\\nUNKNOWN SRV:    '$(SRV)'\\\nNOT FOUND FILE: $(_MK_PATH_TARGET_SERVICE_TMPL)\\\n\"; \
@@ -143,7 +143,7 @@ $(shell [ -f $(_MK_PATH_TARGET_SERVICE_TMPL) ] \
 endef
 
 ### Removes the reference to the `volume` file from the context template
-define remove_volume_from_ctx_tmpl 
+define remove_volume_from_ctx_tmpl
 $(shell [ -f $(_MK_PATH_TARGET_VOLUME_TMPL) ] \
   && sed -i "/$(_NEW_INCLUDE_VOL_REGEX)/d" $(_MK_PATH_TARGET_VOLUME_TMPL) \
   || echo -n "printf \"\\\nUNKNOWN SRV:    '$(SRV)'\\\nNOT FOUND FILE: $(_MK_PATH_TARGET_VOLUME_TMPL)\\\n\"; \
@@ -157,4 +157,87 @@ service_list:
 	@$(shell echo -n "ls -1 $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES) | sed  '/$(_SRV_AFFIX)/s///' | sort | pr -4 -t ; ")
 	@printf "\n"
 
+service_version_list:
+ifeq (1,$(_MK_IS_CONTEX_EXIST))
+ifneq (,$(SRV))
+	@$(eval _SRV_NAMES=$(shell echo -n "`find $(_MK_DIR_PATH_TARGET_CTX_YML) -type f -name '*$(SRV)*' -printf '%f\n' | grep '.service' | grep $(SRV) | sed  '/\.service$(_SRV_AFFIX)/s///' | sort ; `"))
+else
+	@$(eval _SRV_NAMES=$(shell echo -n "`ls -1 $(_MK_DIR_PATH_TARGET_CTX_YML) | grep ".service" | sed  '/\.service$(_SRV_AFFIX)/s///' | sort ; `"))
+endif
+	@$(eval _SRV_NAME_AFFIX=$(addprefix .service,$(_SRV_AFFIX)))
+	@$(eval _ENV_NAME_AFFIX=$(_ENV_AFFIX))
+	@$(eval _DIR_PATH_SERVICES_YML=$(_MK_DIR_PATH_TARGET_CTX_YML:/=))
+	@$(eval _DIR_PATH_SERVICES_ENV=$(_MK_DIR_PATH_TARGET_CTX_ENV:/=))
+else
+ifneq (,$(SRV))
+	@$(eval _SRV_NAMES=$(shell echo -n "`find $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES) -type f -name '*$(SRV)*' -printf '%f\n' | sed  '/$(_SRV_AFFIX)/s///'`"))
+else
+	@$(eval _SRV_NAMES=$(shell echo -n "`ls -1 $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES) | sed  '/$(_SRV_AFFIX)/s///' | sort ; `"))
+endif
+	@$(eval _SRV_NAME_AFFIX=$(_SRV_AFFIX))
+	@$(eval _ENV_NAME_AFFIX=$(_ENV_AFFIX))
+	@$(eval _DIR_PATH_SERVICES_YML=$(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES))
+	@$(eval _DIR_PATH_SERVICES_ENV=$(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_ENV))
+endif
+	@for sN in $(_SRV_NAMES); do \
+		sN_upper=`echo $${sN} | tr '[:lower:]' '[:upper:]'`; \
+		sN_yml_path="$(_DIR_PATH_SERVICES_YML)/$${sN}$(_SRV_NAME_AFFIX)"; \
+		sN_env_path="$(_DIR_PATH_SERVICES_ENV)/$${sN}$(_ENV_NAME_AFFIX)"; \
+		sN_regex_yml_version='s/[^0-9]*([0-9\.]+([0-9\.]+)?).*/\1/'; \
+		sN_version_num=""; \
+		sN_env_version=""; \
+		sN_yml_docker_configuration=""; \
+		\
+		sN_yml_version=`$(CAT) "$${sN_yml_path}" | grep "_VERSION" \
+		| sed "/^\ */d" \
+		| sed "/^#*/d" \
+		| sed  -E "$${sN_regex_yml_version}";` ; \
+		\
+		sN_yml_env_variable_name_version=`$(CAT) "$${sN_yml_path}" \
+		| grep "_VERSION" \
+		| grep "$${sN_upper}" \
+		| sed -E  's/.+\{([^\ \-\=\:}]+_VERSION).*/\1/' | uniq ;` ; \
+		\
+		sN_yml_image_version=`$(CAT) "$${sN_yml_path}" | grep "image" | grep -v "#" \
+		| sed -E "s/[^#]*image[\ \t]*:[\ \t]*([^\ \t]+)/\1/";` ; \
+		\
+		sN_yml_image_docker_version=`$(CAT) "$${sN_yml_path}" \
+		| sed -n "/^[^#]*\(context\|dockerfile\|build\)/p" ;` ; \
+		\
+		if [ ! -z "$${sN_yml_env_variable_name_version}" ]; then \
+			sN_env_version=`$(CAT) "$${sN_env_path}" | grep "$${sN_yml_env_variable_name_version}=" \
+			| sed  -nE "s/^[^0-9#]*([0-9\.]+([0-9\.]+)?).*/\1/p";` ; \
+		fi; \
+		\
+		sN_yml_image_count=`echo "$${sN_yml_image_version}" | wc -l`; \
+		sN_yml_docker_configuration=`echo "$${sN_yml_image_docker_version}" \
+		| while read line; do \
+			[ ! -z "$${line}" ] && echo -n "> $${line} "; \
+		done;` ; \
+		\
+		printf "\n$${sN_upper}:"; \
+		sN_yml_version_num=$${sN_yml_version}; \
+		if [ -z "$${sN_yml_version_num}" ]; then \
+			sN_yml_version_num="None"; \
+		fi; \
+		if [ ! -z "$${sN_yml_image_version}" ] && [ -z "$${sN_yml_version}" ] && [ -z "$${sN_yml_image_docker_version}" ]; then \
+			[ ! -z "$${sN_yml_image_version}" ] && printf "\nDocker: image |$${sN_yml_image_version}|"; \
+			[ ! -z "$${sN_yml_docker_configuration}" ] && printf "\nDocker: build |$${sN_yml_docker_configuration}|"; \
+		fi; \
+		if [ ! -z "$${sN_yml_image_docker_version}" ]; then \
+			[ ! -z "${sN_yml_image_version}" ] && printf "\nDocker: image |$${sN_yml_image_version}|"; \
+			[ ! -z "$${sN_yml_docker_configuration}" ] && printf "\nDocker: build |$${sN_yml_docker_configuration}|"; \
+		fi; \
+		\
+		[ ! -z "$${sN_yml_env_variable_name_version}" ] && printf "\nENV variable: |$${sN_yml_env_variable_name_version}|"; \
+		[ ! -z "$${sN_env_version}" ] && printf "\nENV version:  |$${sN_env_version}|"; \
+		[ ! -z "$${sN_yml_version}" ] && printf "\nYML version:  |$${sN_yml_version}|"; \
+		if [ "$${sN_yml_image_count}" -gt 1 ]; then \
+			$(call _mk_warn, "Too many images |$${sN_yml_image_count}| declared in the one service"); \
+			$(call _mk_warn, "check the file: |$${sN_yml_path}|"); \
+			printf "\n"; \
+		fi; \
+	printf "\n"; \
+	done;
+	@printf "\n";
 
