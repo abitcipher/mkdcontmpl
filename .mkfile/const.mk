@@ -2,7 +2,6 @@ _ENV  := env
 _TMPL := tmpl
 _YML  := yml
 
-
 AWK   := awk
 CAT   := cat
 CP    := cp
@@ -14,4 +13,6 @@ SED   := sed
 SORT  := sort
 TOUCH := touch
 TRUNCATE := truncate
+
+# KEYMAP_SEPARATOR = ⁠|
 

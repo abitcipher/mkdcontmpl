@@ -16,6 +16,7 @@ Env-files from the directory `.context/$(CTX)/.environ/`  set environment variab
 | initCtx       | Create new 'context' from .default: `NEWCTX=<context>`       |
 | listCtx       | List all contexts                                            |
 | listSrv       | List all services in context                                 |
+|listSrvVersion | List services with versions: `CTX=<context> SRV=<pattern>`   |
 | addCtxSrv     | Add service to context:      `CTX=<context>` `SRV=<service>` |
 | enableCtxSrv  | Enable service in context:   `CTX=<context>` `SRV=<service>` |
 | disableCtxSrv | Disable service in context:  `CTX=<context>` `SRV=<service>` |
@@ -69,16 +70,17 @@ The main utility on which the Jinja template engine depends is
 
 The scripts also use standard Unix utilities : 
 
-| Command                      | Description                                                                             |
-| ---------------------------- | --------------------------------------------------------------------------------------- |
+| Command                      | Description |
+|: --------------------------- |: --------------------------------- |
 | <nobr>`minijinja-cli`</nobr> | a powerful but minimal dependency template engine for Rust compatible with Jinja/Jinja2 |
-| `sed`                        | stream editor for filtering and transforming text                                       |
-| `cp`                         | copy files and directories                                                              |
-| `ln -s`                      | make links between files                                                                |
-| `mkdir`                      | make a directory                                                                        |
-| `sort`                       | sort lines of text files                                                                |
-| `truncate`                   | shrink or extend the size of a file to the specified size                               |
-| `uniq`                       | report or omit repeated lines                                                           |
+| `sed`                        | stream editor for filtering and transforming text |
+| `cp`                         | copy files and directories |
+| `ln -s`                      | make links between files |
+| `mkdir`                      | make a directory |
+| `sort`                       | sort lines of text files |
+| `truncate`                   | shrink or extend the size of a file to the specified size |
+| `uniq`                       | report or omit repeated lines |
+| `awk`                        | using by `keymap` functions |
 
 #### Installation
 

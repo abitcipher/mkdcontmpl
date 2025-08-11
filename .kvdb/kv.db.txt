@@ -1,0 +1,36 @@
+test
+help¦about       Main task that the scripts perform is templating the '.env' and 'docker-compose.yml' files.\n\
+All operations are working with text files and directories.\n\
+The goal is to assemble various combinations of services from existing yml-templates.\n\
+For this purpose, the concept of 'context' and 'service' is introduced.\n\
+The service is represented by a yml-file describing a specific service (Docker-service).\n\n\
+for example:\n\
++ file '.template/docker.compose/services/portainer.yml' — this is a file that can be included\n\
+ \t in the final build 'docker-compose.yml' of the named context.\n\
++ file '.template/docker.compose.env/portainer.env' — a template with environment variables\n\
+ \t for this service.\n\
++ file '.template/docker.compose/'\n\
+\n\
+A named context is simply a directory in the '.context'-folder containing customized yml-templates and env-files\n\
+ — files are copied to this folder from directories with .template's\n\
+ (commands: 'addCtxSrv', 'rmCtxSrv', 'disableCtxSrv' - commands for managing Docker services of the context)\n\
+\n\
+for example:\n\
++ '.context/test/.tmpl/*.tmpl' — jinja templates for assembling the final 'docker-compose.yml'\n\
++ '.context/test/.environ/*.env' — env files with environment variables for each named service\n\
+\n\
+The above files can be edited with a regular text editor and are used to build the two resulting files:\n\
++ '.context/test/.env'\n\
++ '.context/test/.docker-compose.yml'\n\
+\n\
+These are the main 'context' files that can be used to run services added to the context. \n\
+(i.e. in the folder where yml & env files describe Docker services with customized settings)\n
+
+help¦listAbcVersion       0123456.someQhelp...
+test¦key             value
+test¦oneline         one line value
+test¦multiline \
+  --multi \
+  --line
+testkv               key+value
+md5sum               e65b0dce58cbecf21e7c9ff7318f3b57

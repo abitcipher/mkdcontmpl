@@ -5,38 +5,63 @@ MAKEFLAGS += -r
 SHELL := /bin/bash
 
 
-### KEYMAP_FILES: List of files with (key,value) pairs. Keys in later files override keys in earlier files.
-ifndef KEYMAP_FILES
-KEYMAP_FILES = \
+### _MK_KEYMAP_FILES: List of files with (key,value) pairs. Keys in later files override keys in earlier files.
+ifndef _MK_KEYMAP_FILES
+_MK_KEYMAP_FILES = \
 	$(shell ! [ -r KEYS ] || echo KEYS) \
 	$(shell ! [ -r KEYS.local ] || echo KEYS.local)
 endif
 
 
-# KEYMAP_PREFIX - Prefix for make variables holding the map.
-ifndef KEYMAP_PREFIX
-KEYMAP_PREFIX = KEYMAP
+# _MK_KEYMAP_PREFIX - Prefix for make variables holding the map.
+ifndef _MK_KEYMAP_PREFIX
+_MK_KEYMAP_PREFIX = KV
 endif
 
 
-# KEYMAP_SEPARATOR - Separator for keys.
-ifndef KEYMAP_SEPARATOR
-KEYMAP_SEPARATOR = |
+# _MK_KEYMAP_SEPARATOR - Separator for keys.
+ifndef _MK_KEYMAP_SEPARATOR
+_MK_KEYMAP_SEPARATOR = ¦
 endif
 
 
 ### load keymap
-cat_keymap_file := "cat ${KEYMAP_FILES} \
+cat_keymap_file := "cat ${_MK_KEYMAP_FILES} \
 					| egrep -v \"^ *($$|\#)\" \
 					| awk '{if (sub(/\\\\$$/,\"\")) printf \"%s\", \$$0; else print}'"
 
+##? > cat .test/kv.db.txt | egrep -v "^ *($|#)" | awk '{if (sub(/\\$/,"")) printf "%s", $0; else print}'
+##? test
+##? test¦key             value
+##? test¦oneline         one line value
+##? test¦multiline   --multi   --line
+##? testkv               key+value
+##? md5sum               e65b0dce58cbecf21e7c9ff7318f3b57
+##? url                  https://test.net
+##? url¦subdir           https://test.net/subdir
+##? url¦subdir¦slug      https://test.net/subdir/slug
+##? url¦subdir¦param     https://test.net/subdir?param=1234567890
+
 lines := $(shell eval ${cat_keymap_file})
 
+# ?kvLines -> lines := $(shell eval ${cat_keymap_file})
+define kvPrefix
+$(shell eval ${cat_keymap_file} \
+| awk -v prefix="${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}" \
+		'NR==${i} { \
+			key=$$1; \
+			for(i=2; i<=NF; ++i) $$(i-1)=$$i; \
+			NF-=1; \
+			print prefix key " := " $$0 \
+		}' \
+)
+endef
+
+
 $(foreach i, \
-	$(shell seq 1 \
-		$(shell eval ${cat_keymap_file} | wc -l)), \
+	$(shell seq 1 $(shell eval ${cat_keymap_file} | wc -l)), \
 		$(eval $(shell eval ${cat_keymap_file} \
-				| awk -v prefix="${KEYMAP_PREFIX}${KEYMAP_SEPARATOR}" \
+				| awk -v prefix="${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}" \
 						'NR==${i} { \
 							key=$$1; \
 							for(i=2; i<=NF; ++i) $$(i-1)=$$i; \
@@ -47,13 +72,13 @@ $(foreach i, \
 		) \
 )
 
-KEYMAP_KEY_LIST := $(patsubst ${KEYMAP_PREFIX}${KEYMAP_SEPARATOR}%,%,$(filter ${KEYMAP_PREFIX}${KEYMAP_SEPARATOR}%,${.VARIABLES}))
+_MK_KEYMAP_KEY_LIST := $(patsubst ${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}%,%,$(filter ${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}%,${.VARIABLES}))
 
 
 ### compute prefix lists
-KEYMAP_KEY_PREFIX_LIST_DELIMITED := \
+_MK_KEYMAP_KEY_PREFIX_LIST_DELIMITED := \
 	$(shell eval ${cat_keymap_file} \
-	| awk -v delim="${KEYMAP_SEPARATOR}" '{ \
+	| awk -v delim="${_MK_KEYMAP_SEPARATOR}" '{ \
 				n=split($$1,a,delim); \
 				p=""; \
 				for(i=1;i<=n;++i) { \
@@ -63,19 +88,19 @@ KEYMAP_KEY_PREFIX_LIST_DELIMITED := \
 			}' \
 	| sort | uniq)
 
-KEYMAP_KEY_PREFIX_LIST := \
-	$(foreach kp, ${KEYMAP_KEY_PREFIX_LIST_DELIMITED}, \
-		$(patsubst ${KEYMAP_SEPARATOR}%,%,$(patsubst %${KEYMAP_SEPARATOR},%,${kp})) \
+_MK_KEYMAP_KEY_PREFIX_LIST := \
+	$(foreach kp, ${_MK_KEYMAP_KEY_PREFIX_LIST_DELIMITED}, \
+		$(patsubst ${_MK_KEYMAP_SEPARATOR}%,%,$(patsubst %${_MK_KEYMAP_SEPARATOR},%,${kp})) \
 	)
 
 
 ### initialize prefix lists
-$(foreach kp, ${KEYMAP_KEY_PREFIX_LIST_DELIMITED}, \
+$(foreach kp, ${_MK_KEYMAP_KEY_PREFIX_LIST_DELIMITED}, \
 	$(eval $(shell { \
-		echo -n "${KEYMAP_PREFIX}${kp} := "; \
+		echo -n "${_MK_KEYMAP_PREFIX}${kp} := "; \
 		eval ${cat_keymap_file} \
-		| awk 	-v delim="${KEYMAP_SEPARATOR}" \
-				-v kp="$(patsubst ${KEYMAP_SEPARATOR}%,%,${kp})" \
+		| awk 	-v delim="${_MK_KEYMAP_SEPARATOR}" \
+				-v kp="$(patsubst ${_MK_KEYMAP_SEPARATOR}%,%,${kp})" \
 				'BEGIN{kp_len=length(kp)} \
 					substr($$1,1,kp_len)==kp { \
 					 	s=substr($$1,kp_len+1); \
@@ -88,17 +113,29 @@ $(foreach kp, ${KEYMAP_KEY_PREFIX_LIST_DELIMITED}, \
 
 
 ### keymap_val: Get value for full key.
-keymap_val = $(${KEYMAP_PREFIX}${KEYMAP_SEPARATOR}${1})
+keymap_val = $(${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}${1})
 
+kmval = $(shell echo -n "echo \"${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}$(1)\"")
 
 ### keymap_key_list: List next components for partial key.
-keymap_key_list = $($(if ${1},${KEYMAP_PREFIX}${KEYMAP_SEPARATOR}${1}${KEYMAP_SEPARATOR},${KEYMAP_PREFIX}${KEYMAP_SEPARATOR}))
+keymap_key_list = $($(if ${1},${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}${1}${_MK_KEYMAP_SEPARATOR},${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}))
+
+
+define kvList
+$(foreach v, $(.VARIABLES), \
+		$(if $(filter file,$(origin $(v))), \
+			$(if $(filter $(_MK_KEYMAP_PREFIX)%, $(v)), \
+			$(info '$(v)=$($(v))')) \
+		) \
+	)
+endef
+
 
 ### kv_set:
 define kv_set 
 $(eval kvKey=${1})
 $(eval kvVal=${2})
-$(shell cat ${KEYMAP_FILES} | grep $(kvKey))
+$(shell cat ${_MK_KEYMAP_FILES} | grep $(kvKey))
 $(call _mk_inf, "kvKey: $(kvKey)...")
 $(call _mk_inf, "kvVal: $(kvVal)...")
 printf "\n"
@@ -109,4 +146,4 @@ print-%:
 
 
 # e.g.,
-# print-${KEYMAP_PREFIX}${KEYMAP_SEPARATOR}
+# print-${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}

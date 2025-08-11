@@ -1,13 +1,26 @@
 test
-test|key             value
-test|oneline         one line value
-test|multiline \
+test¦key             value
+test¦oneline         one line value
+test¦multiline \
   --multi \
   --line
 testkv               key+value
 md5sum               e65b0dce58cbecf21e7c9ff7318f3b57
 url                  https://test.net
-url|subdir           https://test.net/subdir
-url|subdir|slug      https://test.net/subdir/slug
-url|subdir|param     https://test.net/subdir?param=1234567890
+url¦subdir           https://test.net/subdir
+url¦subdir¦slug      https://test.net/subdir/slug
+url¦subdir¦param     https://test.net/subdir?param=1234567890
+help¦listAbcVersion       0123456.someQhelp...
+help⁠¦listSrvVersion       1234.some!help...+listSrvVersion...
+help⁠¦listSrvVersion1       0987654321 poiuytrewq 	\tlkjhgfdsa    ,mnbvcxz
+help⁠¦listSrvVersion2       4321.some!help...+listSrvVersion...
+help¦listSrvVersion3       0987.somehelp...\
++target...\n\
+\tlistSrvVersion ...multiline
+help¦target       1234.some  help... +target...
+help¦target¦listSrvVersion2       54321...
+help¦target¦listSrvVersion      12345.somehelp...\
++target...\n\
+\tlistSrvVersion ...multiline
+help¦url¦subdir¦slug       123456.some q help...
 
