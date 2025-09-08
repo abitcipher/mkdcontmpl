@@ -1,8 +1,8 @@
 __is_keymap := 1
 
-.SUFFIXES:
-MAKEFLAGS += -r
-SHELL := /bin/bash
+# .SUFFIXES:
+# MAKEFLAGS += -r
+# SHELL := /bin/bash
 
 
 ### _MK_KEYMAP_FILES: List of files with (key,value) pairs. Keys in later files override keys in earlier files.
@@ -26,9 +26,29 @@ endif
 
 
 ### load keymap
-cat_keymap_file := "cat ${_MK_KEYMAP_FILES} \
+cat_keymap_file = "cat ${_MK_KEYMAP_FILES} \
 					| egrep -v \"^ *($$|\#)\" \
 					| awk '{if (sub(/\\\\$$/,\"\")) printf \"%s\", \$$0; else print}'"
+
+
+# define kvLoadFile
+# $(eval cat_keymap_file = $(shell eval "cat ${1} \
+# 		| egrep -v \"^ *($$|\#)\" \
+# 		| awk '{if (sub(/\\\\$$/,\"\")) printf \"%s\", \$$0; else print}'"))
+# $(foreach i, \
+# 	$(shell seq 1 $(shell eval ${cat_keymap_file} | wc -l)), \
+# 		$(eval $(shell eval ${cat_keymap_file} \
+# 				| awk -v prefix="${_MK_KEYMAP_PREFIX}${_MK_KEYMAP_SEPARATOR}" \
+# 						'NR==${i} { \
+# 							key=$$1; \
+# 							for(i=2; i<=NF; ++i) $$(i-1)=$$i; \
+# 							NF-=1; \
+# 							print prefix key " := " $$0 \
+# 						}' \
+# 				) \
+# 		) \
+# )
+# endef
 
 ##? > cat .test/kv.db.txt | egrep -v "^ *($|#)" | awk '{if (sub(/\\$/,"")) printf "%s", $0; else print}'
 ##? test
@@ -42,7 +62,7 @@ cat_keymap_file := "cat ${_MK_KEYMAP_FILES} \
 ##? url¦subdir¦slug      https://test.net/subdir/slug
 ##? url¦subdir¦param     https://test.net/subdir?param=1234567890
 
-lines := $(shell eval ${cat_keymap_file})
+#? lines := $(shell eval ${cat_keymap_file})
 
 # ?kvLines -> lines := $(shell eval ${cat_keymap_file})
 define kvPrefix
@@ -141,8 +161,8 @@ $(call _mk_inf, "kvVal: $(kvVal)...")
 printf "\n"
 endef
 
-print-%:
-	@echo '$* = $(subst ','\'',${$*})'
+# print-%:
+# 	@echo '$* = $(subst ','\'',${$*})'
 
 
 # e.g.,

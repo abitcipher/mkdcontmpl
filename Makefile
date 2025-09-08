@@ -69,6 +69,7 @@ else
     _MK_FN_DC_DEFAULT_YML   ?= docker-compose.yml
     _MK_FN_DC_DEFAULT_ENV   ?= .env
     _MK_FN_DEFAULT_KVDB     ?= kv.db.txt
+    _MK_FN_HELP_KVDB        ?= kv.help.db.txt
 
     _MK_DIR_TEMPLATE_DOCKER_COMPOSE = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE)
     _MK_DIR_TEMPLATE_DOCKER_COMPOSE_ENV = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE_ENV)
@@ -97,8 +98,8 @@ _MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE = $(realpath $(_MK_DIR_TEMPLAT
 _MK_FN_PATH_RELATIVE_KVDB ?= $(call addprefix, $(_MK_DIR_KVDB), $(_MK_FN_DEFAULT_KVDB))
 _MK_FN_PATH_KVDB ?= $(realpath $(_MK_FN_PATH_RELATIVE_KVDB))
 
-_MK_KEYMAP_FILES ?= $(_MK_FN_PATH_KVDB)
-include $(call addprefix, $(_MK_DIR_MKFILE), keymap.mk)
+# _MK_KEYMAP_FILES ?= $(_MK_FN_PATH_KVDB)
+# include $(call addprefix, $(_MK_DIR_MKFILE), keymap.mk)
 
 ## INCLUDE LIBRARY mk-files
 _MK_FILE_NAME_INCLUDE_LIST := const.mk io.console.mk condition.mk context.mk service.mk help.mk
@@ -123,7 +124,7 @@ test-%:
 ### ---
 
 .PHONY: help
-help: ## Show this help; `help.%`  —  detail helps
+help: ## Show this help; `help.%`  —  detail helps; Check `help.about`
 	@$(MAKE) --no-print-directory checkdeps ## > /dev/null
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
@@ -291,52 +292,9 @@ ctx.build: buildCtx
 help.%: ## Show this help.%
 	$(eval _helpKey=$(shell printf "%s" $@ | sed 's/\./¦/g'))
 	@printf "\n"
+	$(eval _MK_KEYMAP_FILES = $(realpath $(call addprefix, $(_MK_DIR_KVDB), $(_MK_FN_HELP_KVDB)) ))
+	$(eval include $(call addprefix, $(_MK_DIR_MKFILE), keymap.mk))
 	@printf "$(call keymap_val,$(_helpKey))"
 	@printf "\n"
 
 
-#.PHONY: all
-printvar:
-	@printf "\n"
-	@printf "\n_MKFILE_CONTEXT_ROOT_DIR_PATH: |%s|" $(_MKFILE_CONTEXT_ROOT_DIR_PATH)
-	@printf "\n_MKFILE_CONTEXT_DIR_MKFILE: |%s|" $(_MKFILE_CONTEXT_DIR_MKFILE)
-#	@printf "\n_MKFILE_CONTEXT_REL_PATH: |%s|" $(_MKFILE_CONTEXT_REL_PATH)
-	@printf "\n_MK_DIR_PATH_MKFILE: |%s|" $(_MK_DIR_PATH_MKFILE)
-# @printf "\n _SRV:$(SRV)"
-# @printf "\n _SRV_SRC_FILE_NAME:$(_SRV_SRC_FILE_NAME)"
-# @printf "\n _VOL_SRC_FILE_NAME:$(_VOL_SRC_FILE_NAME)"
-# @printf "\n _SRV_TARGET_FILE_NAME:$(_SRV_TARGET_FILE_NAME)"
-# @printf "\n _VOL_TARGET_FILE_NAME:$(_VOL_TARGET_FILE_NAME)"
-# @printf "\n _SRV_SRC_FILE_PATH: $(_SRV_SRC_FILE_PATH)"
-# @printf "\n _VOL_SRC_FILE_PATH: $(_VOL_SRC_FILE_PATH)"
-	@printf "\n"
-	@printf "\n_MK_IS_CONTEX_EXIST: |%s|" $(_MK_IS_CONTEX_EXIST)
-	@printf "\n_MK_IS_SERVICE_EXIST: |%s|" $(_MK_IS_SERVICE_EXIST)
-	@printf "\n_MK_NO_CTX_CHECK_EARLY_EXIT: |%s|" $(_MK_NO_CTX_CHECK_EARLY_EXIT)
-	@printf "\n_MK_DEF_ENV_DIR: |%s|" $(_MK_DEF_ENV_DIR)
-	@printf "\n_MK_CTX_PATH: |%s|" $(_MK_CTX_PATH)
-	@printf "\n_MK_DIR_TARGET_CTX_YML: |%s|" $(_MK_DIR_TARGET_CTX_YML)
-	@printf "\n_CTX_TARGET_YML_PATH: |%s|" $(_CTX_TARGET_YML_PATH)
-#	@printf "\n_MK_CTX_PATH: %s..." $(_MK_CTX_PATH)
-	@printf "\n_MK_DIR_TARGET_CTX_YML: |%s|" $(_MK_DIR_TARGET_CTX_YML)
-	@printf "\n_CTX_TARGET_YML_PATH: |%s|" $(_CTX_TARGET_YML_PATH)
-	@printf "\n_CTX_SRV_TARGET_FILE_PATH: |%s|" $(_CTX_SRV_TARGET_FILE_PATH)
-	@printf "\n_CTX_VOL_TARGET_FILE_PATH: |%s|" $(_CTX_VOL_TARGET_FILE_PATH)
-	@printf "\n_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE: |%s|" $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE)
-	@printf "\n_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_ENV: |%s|" $(_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_ENV)
-	@printf "\n_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES: |%s|" $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES)
-	@printf "\n_CTX_SRV_TARGET_FILE_PATH: |%s|" $(_CTX_SRV_TARGET_FILE_PATH)
-	@printf "\n_MK_DIR_PATH_TARGET_CTX_TMPL: |%s|" $(_MK_DIR_PATH_TARGET_CTX_TMPL)
-	@printf "\n_MK_DIR_PATH_TARGET_CTX_YML: |%s|" $(_MK_DIR_PATH_TARGET_CTX_YML)
-	@printf "\n_MK_DIR_PATH_TARGET_CTX_ENV: |%s|" $(_MK_DIR_PATH_TARGET_CTX_ENV)
-	@printf "\n"
-	@printf "\n_MK_PATH_TARGET_SERVICE_TMPL: |%s|" $(_MK_PATH_TARGET_SERVICE_TMPL)
-	@printf "\n_MK_DIR_TARGET_CTX_YML_MASKED: |%s|" $(_MK_DIR_TARGET_CTX_YML_MASKED)
-	@printf "\n_MK_SERVICE_MASKED_RELATIVE_FILE_PATH: |%s|" $(_MK_SERVICE_MASKED_RELATIVE_FILE_PATH)
-	@printf "\n_MK_DIR_PATH_DOCKER_COMPOSE_ENV: |%s|" $(_MK_DIR_PATH_DOCKER_COMPOSE_ENV)
-	@printf "\n_NEW_INCLUDE_SRV: |%s|" $(_NEW_INCLUDE_SRV)
-	@printf "\n_MK_DIR_KVDB: |%s|" $(_MK_DIR_KVDB)
-	@printf "\n_MK_FN_DEFAULT_KVDB: |%s|" $(_MK_FN_DEFAULT_KVDB)
-	@printf "\n_MK_FN_PATH_RELATIVE_KVDB: |%s|" $(_MK_FN_PATH_RELATIVE_KVDB)
-	@printf "\n_MK_FN_PATH_KVDB: |%s|" $(_MK_FN_PATH_KVDB)	
-	@printf "\n"

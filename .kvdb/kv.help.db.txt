@@ -1,4 +1,3 @@
-test
 help¦about       Main task that the scripts perform is templating the '.env' and 'docker-compose.yml' files.\n\
 All operations are working with text files and directories.\n\
 The goal is to assemble various combinations of services from existing yml-templates.\n\

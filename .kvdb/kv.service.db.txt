@@ -1,0 +1,50 @@
+service¦auth¦version        
+service¦cms¦version        
+service¦cronicle¦version¦current        0.9.19
+service¦cronicle¦version¦latest        curl -s https://api.github.com//repos/jhuckaby/Cronicle/releases/latest | jq -r '.tag_name'
+service¦default¦version        
+service¦docker-in-docker¦version        
+service¦envoy¦version¦current        1.34.1
+service¦envoy¦version¦latest        curl -s https://api.github.com/repos/envoyproxy/envoy/releases/latest | jq -r '.tag_name'
+service¦ftp¦version        
+service¦graphql¦version¦current        2.6.1
+service¦graphql¦version¦latest        curl -s https://api.github.com/repos/hasura/graphql-engine/releases/latest | jq -r '.tag_name'
+service¦maildev¦version        
+service¦mailserver¦version        
+service¦mail¦version        
+service¦memcached¦version        
+service¦midnight¦version        
+service¦mysql¦version¦current        8.0
+service¦mysql¦version¦latest        curl -s https://raw.githubusercontent.com/mysql/mysql-server/refs/heads/trunk/MYSQL_VERSION | sed ':a;N;$!ba;s/\n/ /g' | sed -r 's/.*MYSQL_VERSION_MAJOR=([0-9]+).*MYSQL_VERSION_MINOR=([0-9]+).*MYSQL_VERSION_PATCH=([0-9]+).*/\1.\2.\3/g'
+service¦netdata¦version        
+service¦nginx¦version        
+service¦nodered¦version        
+service¦nodered¦version¦latest        curl -s https://api.github.com/repos/node-red/node-red/releases/latest | jq -r '.tag_name'
+service¦opa¦version        
+service¦percona¦version        
+service¦pgadmin¦version¦current        6.8
+service¦pgadmin¦version¦latest        curl -s https://api.github.com/repos/pgadmin-org/pgadmin4/releases/latest | jq -r '.tag_name'
+service¦pgmq¦version        
+service¦phpfpm¦version        
+service¦phpmyadmin¦version        
+service¦phpworker¦version¦current        7.4.23	
+service¦phpworker¦version¦latest         
+service¦portainer¦version¦current        2.27.8
+service¦portainer¦version¦latest        curl -s https://api.github.com/repos/portainer/portainer/releases/latest | jq -r '.tag_name'
+service¦postgres¦version
+service¦postgres¦version¦latest        curl -s https://www.postgresql.org/docs/current/release.html | grep "Release" | grep "release-" | sed 's/.*Release\ \([0-9\.]*\).*/\1/g'  | head -1
+service¦proxysql¦version        
+service¦rabbitmq¦version
+service¦rabbitmq¦version¦latest        curl -s https://api.github.com/repos/rabbitmq/rabbitmq-server/releases/latest | jq -r '.tag_name'
+service¦rcproxy¦version        
+service¦rediscommander¦version        
+service¦rediscommander¦version¦latest        curl -s https://api.github.com/repos/joeferner/redis-commander/tags | jq -r '.[0].name'
+service¦redisproxy¦version        
+service¦redis¦version¦current        7.0.10
+service¦redis¦version¦latest        curl -s https://api.github.com/repos/redis/redis/releases/latest | jq -r '.tag_name'
+service¦sysdock¦version        
+service¦sysinf¦version        
+service¦vitess¦version¦current        7.0.2
+service¦vitess¦version¦latest        curl -s https://api.github.com/repos/vitessio/vitess/releases/latest | jq -r '.tag_name'
+service¦webphp¦version        
+service¦webstatic¦version        
