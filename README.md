@@ -71,7 +71,7 @@ The main utility on which the Jinja template engine depends is
 The scripts also use standard Unix utilities : 
 
 | Command                      | Description |
-|: --------------------------- |: --------------------------------- |
+| ---------------------------- | --------------------------------- |
 | <nobr>`minijinja-cli`</nobr> | a powerful but minimal dependency template engine for Rust compatible with Jinja/Jinja2 |
 | `sed`                        | stream editor for filtering and transforming text |
 | `cp`                         | copy files and directories |
