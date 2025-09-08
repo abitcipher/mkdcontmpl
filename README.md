@@ -3,16 +3,12 @@
 Implements build `docker-compose.yml` and `.env` files from templates. 
 The system operates with the concept of context and service.
 
-Context — is a directory with a name set by the environment variable `CTX`, context-directory is located at the `.context` folder.
-The `.context/$(CTX)/` directory contains templates (Jinja/Jinja2) 
-at the `.context/$(CTX)/.tmpl` folder for build `docker-compose.yml`.
-Yml-files from the `.context/$(CTX)/.yml/` directory describe the services available for this context, every file `$(SRV).service.yml` describe some service with name `$(SRV)` .
-Env-files from the directory `.context/$(CTX)/.environ/`  set environment variables for each service  `$(SRV).env` .
 
 #### Main commands (makefile targets)
 
 | Command       | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
+| help			| Show this help; `help.%`  —  detail helps check `help.about` |
 | initCtx       | Create new 'context' from .default: `NEWCTX=<context>`       |
 | listCtx       | List all contexts                                            |
 | listSrv       | List all services in context                                 |
@@ -100,3 +96,19 @@ Also, if installed [Rust](https://www.rust-lang.org/tools/install) and package m
 ```bash
 $ cargo install minijinja-cli
 ```
+
+##### How it work
+```bash
+$ make help.about
+```
+
+Shortly, `context` — is a directory with a name set by the environment variable `CTX`, context-directory is located at the folder named `.context`.
+The `.context/$(CTX)/` directory contains templates (Jinja/Jinja2) 
+at the `.context/$(CTX)/.tmpl` folder for build `docker-compose.yml`.
+YML-files from the `.context/$(CTX)/.yml/` directory describe the services available for this context, every file `$(SRV).service.yml` describe some service with name `$(SRV)` .
+Env-files from the directory `.context/$(CTX)/.environ/`  set environment variables for each service  `$(SRV).env`.
+The command like:
+```
+$ make buildCtx CTX=test
+```
+created 'docker-compose.yml' & '.env' files at the `./.context/test` folder.
