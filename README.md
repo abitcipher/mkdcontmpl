@@ -97,7 +97,8 @@ Also, if installed [Rust](https://www.rust-lang.org/tools/install) and package m
 $ cargo install minijinja-cli
 ```
 
-##### How it work
+---
+#### How it work
 ```bash
 $ make help.about
 ```

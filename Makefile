@@ -130,6 +130,26 @@ help: ## Show this help; `help.%`  —  detail helps; Check `help.about`
 
 ### ---
 
+
+### ---
+
+# INIT: new context - create directory (context) & copy files from '.default'
+@PHONY: initCtx init.ctx ctx.init new.ctx ctx.new
+initCtx: context_init ## Create new 'context'-folder: CTX=<context>
+initCTX: initCtx
+init.ctx: initCtx
+ctx.init: initCtx
+new.ctx: initCtx
+ctx.new: initCtx
+
+# Adds service to context - copy service template files (<SRV>.yml; <SRV>.env) to context (direcotry) 
+# and update CTX template files: `dc.services.tmpl` and `dc.volumes.tmpl`
+addCtxSrv:   context_add_service ## Add service to context:      CTX=<context> SRV=<service> [SARGS=<service_args>]
+add.ctx.srv: addCtxSrv
+ctx.add.srv: addCtxSrv
+srv.add.ctx: addCtxSrv
+srv.ctx.add: addCtxSrv
+
 .PHONY: checkdeps
 checkdeps:
 	@printf "\n"
@@ -150,17 +170,6 @@ isCtx: context_check_is_exists ## Check is  'context'  exists: CTX=<context>
 isCTX: isCtx
 check.ctx: isCtx
 ctx.check: isCtx
-
-### ---
-
-# INIT: new context - create directory (context) & copy files from '.default'
-@PHONY: initCtx init.ctx ctx.init new.ctx ctx.new
-initCtx: context_init ## Create new 'context'-folder: CTX=<context>
-initCTX: initCtx
-init.ctx: initCtx
-ctx.init: initCtx
-new.ctx: initCtx
-ctx.new: initCtx
 
 ### ---
 
@@ -224,15 +233,6 @@ listSrvVer: listSrvVersion
 srvVerList: listSrvVersion
 
 
-# Adds service to context - copy service template files (<SRV>.yml; <SRV>.env) to context (direcotry) 
-# and update CTX template files: `dc.services.tmpl` and `dc.volumes.tmpl`
-addCtxSrv:   context_add_service ## Add service to context:      CTX=<context> SRV=<service> [SARGS=<service_args>]
-add.ctx.srv: addCtxSrv
-ctx.add.srv: addCtxSrv
-srv.add.ctx: addCtxSrv
-srv.ctx.add: addCtxSrv
-
-
 # Checks is service-file included to context service-template (`dc.services.tmpl`)
 isCtxSrvEnabled:
 	@$(call _mk_run, "isCtxSrvEnabled: '$(SERVICE)'" );
@@ -287,6 +287,30 @@ srv.ctx.rescue: rescueCtxSrv
 buildCtx: context_build ## Build context: CTX=<context> — create 'docker-compose.yml' & '.env' files
 build.ctx: buildCtx
 ctx.build: buildCtx
+
+
+# Clean current context files - remove 'docker-compose.yml' & '.env' files
+## PHONY += rmCurrentCtx cleancontext clean.ctx ctx.clean
+rmCurrentCtx: ## Remove current context soft link
+	@rm -f .env
+	@rm -f docker-compose.yml
+
+
+# Set context as current - launch context files to root directory
+## PHONY += setCurrentCtx setcontext set.ctx ctx.set
+setCurrentCtx: ##rmCurrentCtx ## Set context as current default: CTX=<context>
+	@$(eval _TARGET_RELATIVE_DEFAULT_YML=$(addprefix $(addprefix $(_MK_DIR_CONTEXT), $(CTX))/, $(_MK_FN_DC_DEFAULT_YML)))
+	@$(eval _TARGET_RELATIVE_DEFAULT_ENV=$(addprefix $(addprefix $(_MK_DIR_CONTEXT), $(CTX))/, $(_MK_FN_DC_DEFAULT_ENV)))
+	@$(shell echo -n "echo $(_TARGET_RELATIVE_DEFAULT_YML)")
+	@$(shell echo -n "echo $(_TARGET_RELATIVE_DEFAULT_ENV)")
+	@$(shell echo -n "echo CTX: $(CTX)")
+	@ln -sfn $(_TARGET_RELATIVE_DEFAULT_YML) docker-compose.yml
+	@ln -sfn $(_TARGET_RELATIVE_DEFAULT_ENV) .env
+
+setcontext: setCurrentCtx
+set.ctx: setCurrentCtx
+ctx.set: setCurrentCtx
+
 
 ## .PHONY: help.%
 help.%: ## Show this help.%

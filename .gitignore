@@ -1,2 +1,4 @@
 .context/*
 !.context/.gitkeep
+.env
+docker-compose.yml
