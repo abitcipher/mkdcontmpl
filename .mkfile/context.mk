@@ -61,6 +61,8 @@ define get_context =
 $(CTX)
 endef
 
+## Get current context from symlinked .env file
+CTX_CURRENT := $(notdir $(patsubst %/,%,$(dir $(shell echo -n  "`readlink $(_MK_FN_DC_DEFAULT_ENV)`"))))
 
 # For CTX set context directory path
 $(eval _MK_CTX_DIR=$(CTX))
@@ -232,6 +234,9 @@ context_list:
 	@$(SHELL) -c "ls -1 $(_MK_DIR_PATH_CONTEXT) | sort | pr -2 -t"
 	@printf "\n";
 
+context_current: 
+	@$(call _mk_inf, "Current CONTEXT: '$(CTX_CURRENT)'")
+	@printf "\n"
 
 ### Prints the available services at context
 context_all_service_list: context_check_is_exists

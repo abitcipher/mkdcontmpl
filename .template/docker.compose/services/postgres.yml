@@ -3,33 +3,44 @@
   postgres:
     container_name: "${COMPOSE_PROJECT_NAME}_postgres"
     hostname: postgres
-    image: postgres:latest
-    build:
+    image: 'postgres:latest'
+#    build:
 #      context: ./postgres
-      args:
+#      args:
 #        - POSTGIS_VERSION=${POSTGIS_VERSION:-3.1.4+dfsg-1.pgdg110+1}
 #        - PG_MAJOR=${POSTGIS_MAJOR:-3}
 #        - POSTGIS_MAJOR=${POSTGIS_MAJOR:-3}
-        - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
-        - POSTGRES_PORT=${POSTGRES_PORT:-5432}
-        - POSTGRES_DB=${POSTGRES_DB:-postgres}
-        - POSTGRES_USER=${POSTGRES_USER:-postgres}
-        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-        - POSTGRES_ROOT_PASSWORD=${POSTGRES_ROOT_PASSWORD:-postgres}
+#        - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+#        - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+#        - POSTGRES_DB=${POSTGRES_DB:-postgres}
+#        - POSTGRES_USER=${POSTGRES_USER:-postgres}
+#        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+#        - POSTGRES_ROOT_PASSWORD=${POSTGRES_ROOT_PASSWORD:-postgres}
     stop_grace_period: 30s
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 30s
+      timeout: 3s
+      retries: 5
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_PORT=${POSTGRES_PORT}
+#      - POSTGRES_USER=${POSTGRES_USER}
+      - PGDATA=/var/lib/postgresql/18/docker
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Kiev
     logging:
       driver: "json-file"
       options:
         max-size: "50m"
     volumes:
-#      - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d # Place init file(s) here.
-      - ${APP_DATA_PATH_HOST}/postgres:/var/lib/postgresql/data
+#      - ${APP_DATA_PATH_HOST}/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d # Place init file(s) here.
+#      - ${APP_DATA_PATH_HOST}/postgres:/var/lib/postgresql/data
+       - ${APP_DATA_PATH_HOST}/postgres:/var/lib/postgresql/18/docker
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:

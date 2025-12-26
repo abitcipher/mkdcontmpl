@@ -1,3 +1,2 @@
-  postgres:
+  trailbase:
     driver: ${VOLUMES_DRIVER}
-

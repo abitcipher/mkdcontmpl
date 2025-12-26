@@ -3,7 +3,7 @@
   graphql:
     container_name: "${COMPOSE_PROJECT_NAME}_graphql"
     hostname: graphql
-    image: hasura/graphql-engine:${GRAPHQL_VERSION:-v2.6.1}
+    image: hasura/graphql-engine:v${GRAPHQL_VERSION:-2.48.6}
     depends_on:
       - postgres
 #    restart: always

@@ -3,20 +3,27 @@
   pgadmin:
     container_name: "${COMPOSE_PROJECT_NAME}_pgadmin"
     hostname: pgadmin
-    image: pgadmin
-    build:
-      dockerfile: Dockerfile
-      context: ./pgadmin
-      args:
-        - COMMON_GID=${COMMON_GID}
-        - COMMON_UID=${COMMON_UID}
-        - COMMON_NAME_GID_1000=${COMMON_NAME_GID_1000}
-        - COMMON_NAME_UID_1000=${COMMON_NAME_UID_1000}
-        - PGADMIN_VERSION=${PGADMIN_VERSION:-6.8}
+#    image: pgadmin
+    image: dpage/pgadmin4:9.10
+#    build:
+#      dockerfile: Dockerfile
+#      context: ./pgadmin
+#      args:
+#        - COMMON_GID=${COMMON_GID}
+#        - COMMON_UID=${COMMON_UID}
+#        - COMMON_NAME_GID_1000=${COMMON_NAME_GID_1000}
+#        - COMMON_NAME_UID_1000=${COMMON_NAME_UID_1000}
+#        - PGADMIN_VERSION=${PGADMIN_VERSION:-6.8}
     environment:
-      - "PGADMIN_VERSION=${PGADMIN_VERSION:-6.8}"
-      - "PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}"
-      - "PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}"
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_FORCE_SSL: "True"
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
+      PGADMIN_CONFIG_WTF_CSRF_CHECK_DEFAULT: "False"
+      PGADMIN_CONFIG_WTF_CSRF_ENABLED: "False"
+#      - "PGADMIN_VERSION=${PGADMIN_VERSION:-6.8}"
+#      - "PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}"
+#      - "PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}"
     logging:
       driver: "json-file"
       options:
@@ -26,7 +33,7 @@
     volumes:
       - ${APP_DATA_PATH_HOST}/pgadmin:/var/lib/pgadmin
     ports:
-      - "${PGADMIN_PORT:-5050}:8080"
+      - "${PGADMIN_PORT:-5050}:80"
     networks:
       - frontend
       - backend

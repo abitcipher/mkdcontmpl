@@ -1,0 +1,15 @@
+  # Meilisearch UI service (riccoxie/meilisearch-ui)
+  meilisearch-ui:
+    image: riccoxie/meilisearch-ui:latest
+    ports:
+      - "8080:80" # Maps the UI to port 8080 on your host machine
+    environment:
+      # Tell the UI where to find the Meilisearch instance
+      # 'meilisearch' is the service name defined above, Docker handles internal networking
+      - REACT_APP_MEILI_SERVER_ADDRESS=http://meilisearch:7700
+      # Pass the same master key for authentication
+      - REACT_APP_MEILI_MASTER_KEY=MEILI_MASTER_KEY
+    restart: unless-stopped
+    depends_on:
+      - meilisearch # Ensure Meilisearch starts before the UI
+

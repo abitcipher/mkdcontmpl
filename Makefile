@@ -184,6 +184,15 @@ listCTX: listCtx
 list.ctx: listCtx
 ctx.list: listCtx
 
+currentCtx: context_current ## Show current context
+currentCTX: currentCtx
+current.ctx: currentCtx
+ctx.current: currentCtx
+cur.ctx: currentCtx
+ctx.cur: currentCtx
+curCtx: currentCtx
+curCTX: currentCtx
+
 # Remove context - remove directory (context) & remove files
 rmCtx: context_remove ## Remove 'context'-folder:     CTX=<context>
 rmCTX: rmCtx
@@ -311,6 +320,15 @@ setcontext: setCurrentCtx
 set.ctx: setCurrentCtx
 ctx.set: setCurrentCtx
 
+startInit: ## Start initial setup
+	@$(call _mk_warn, "This script unpacks the basic structure of files – are you sure? [y/N]" );
+	@read answer \
+	&& if [ $${answer:-'N'} = 'y' ]; then \
+		$(_MK_DIR_TEMPLATE)/makeinit.run; \
+	else \
+		$(call _mk_inf, "Canceled..."); \
+	fi;
+	@printf "\n"
 
 ## .PHONY: help.%
 help.%: ## Show this help.%

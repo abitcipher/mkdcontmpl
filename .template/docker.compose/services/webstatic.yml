@@ -5,7 +5,7 @@
     hostname: webstatic
     image: webstatic
     build:
-      context: ./webstatic
+      context: ../docker/webstatic
       args:
         - WEBSTATIC_WEBROOT=${WEBSTATIC_WEBROOT:-/webroot}
         - WEBSTATIC_PORT=${WEBSTATIC_PORT:-8686}

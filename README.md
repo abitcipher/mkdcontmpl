@@ -1,5 +1,7 @@
 ### Build `docker-compose.yml` from templates
 
+`mkdcontmpl` : MaKe Docker Compose ON TeMPLates.
+
 Implements build `docker-compose.yml` and `.env` files from templates. 
 The system operates with the concept of context and service.
 

@@ -1,3 +1,2 @@
-  postgres:
+  meilisearch:
     driver: ${VOLUMES_DRIVER}
-

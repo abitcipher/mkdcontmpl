@@ -1,0 +1,15 @@
+  trailbase:
+    image: docker.io/trailbase/trailbase:latest
+    ports:
+      - "${TRAILBASE_PORT:-4040}:4000"
+    restart: unless-stopped
+    volumes:
+      # NOTE: Docker compose will automatically create missing directories with
+      # "root" ownership. However, the TrailBase image drops root privileges.
+      # You therefore need to ensure that a `traildepot` folder with the
+      # appropriate permissions exist. Otherwise, you'll see "PermissionDenied"
+      # errors in the logs.
+      - ${APP_DATA_PATH_HOST}/trailbase:/app/traildepot
+    environment:
+      RUST_BACKTRACE: "1"
+    # command: "/app/trail --data-dir /app/traildepot run --address 0.0.0.0:4000"
