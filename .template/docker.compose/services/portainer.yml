@@ -14,8 +14,8 @@
     restart: unless-stopped
     command: -H unix:///var/run/docker.sock --admin-password $$2y$$05$$7UqWQA/8ViEJ.ziKMMzDYuMu1piQnasFyjMlx4JDelFDTOqUiBzyS --logo brand-logo.svg
     volumes:
-      - ./portainer/certs:/certs
-      - ./portainer/public/brand-logo.svg:/public/brand-logo.svg
+      - ${APP_DATA_PATH_HOST}/portainer/certs:/certs
+      - ${APP_DATA_PATH_HOST}/portainer/public/brand-logo.svg:/public/brand-logo.svg
       - /var/run/docker.sock:/var/run/docker.sock
       - ${APP_DATA_PATH_HOST}/portainer:/data
     logging:

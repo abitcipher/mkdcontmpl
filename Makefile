@@ -25,6 +25,9 @@ else
 endif
 endif
 
+## _TARGET_ENDPOINT_RAW_POSTFIX := Raw
+_TARGET_ENDPOINT_UNKNOWN := unknown
+
 ##
 _MK_DIR_THIS_MAKEFILE := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
@@ -112,6 +115,51 @@ ifneq ($(wildcard $(call addprefix, $(_MK_DIR_MKFILE), config.mk)),)
 include $(call addprefix, $(_MK_DIR_MKFILE), config.mk)
 endif
 
+##					make -s $(1) CTX=$(CTX_CURRENT); 
+##		make -s $(1);
+
+define __set_target_name
+printf "$(1)"
+endef
+
+##
+## __try_context_overwrite
+##  build new `make` command using first parameter 
+##  as name of new target (callback)
+define __try_context_overwrite
+	$(eval ifeq (,$(1)) 
+		$(eval _TARGET_NAME_REDIRECT_RAW = $(addprefix $@, $(_TARGET_ENDPOINT_UNKNOWN)))
+		else 
+		$(eval _TARGET_NAME_REDIRECT_RAW = $(1))
+	endif)
+
+	$(eval NEW_COMMAND_VARIABLES = $(shell echo -n $(-*-command-variables-*-) | sed 's/\(CTX\=[^\ ]*\)//') )
+	$(eval _TARGET_NAME_RAW = $(_TARGET_NAME_REDIRECT_RAW))
+
+	@if [ "0" -eq "$(_MK_IS_CONTEX_EXIST)" ]; then \
+		if [ "" = "$(CTX_CURRENT)" ]; then \
+			$(call _mk_err, "Not found context - undefined CTX value and current context CTX_CURRENT not set"); printf "\n";\
+		else \
+			if [ "" = "$(CTX)" ]; then \
+				make -s $(_TARGET_NAME_RAW) $(-*-command-variables-*-) CTX=$(CTX_CURRENT); \
+			else \
+				$(call _mk_warn, "Not found  context  CTX: '$(CTX)'."); \
+				$(call _mk_warn, "Default behavior is set: CTX=CTX_CURRENT - '$(CTX_CURRENT)'"); \
+				$(call _mk_ok, "– are you sure? [y/N]" ); \
+				read answer \
+				&& if [ $${answer:-'N'} = 'y' ]; then \
+					make -s $(_TARGET_NAME_RAW) $(NEW_COMMAND_VARIABLES) CTX=$(CTX_CURRENT); \
+				else \
+					$(call _mk_inf, "Canceled..."); \
+				fi; \
+				printf "\n"; \
+			fi; \
+		fi; \
+	else \
+		make -s $(_TARGET_NAME_RAW) $(-*-command-variables-*-); \
+	fi;
+endef
+
 ## ARGS = $(foreach a,$($(subst -,_,$1)_args),$(if $(value $a),$a="$($a)"))
 ### TAGETs:
 test:
@@ -144,7 +192,9 @@ ctx.new: initCtx
 
 # Adds service to context - copy service template files (<SRV>.yml; <SRV>.env) to context (direcotry) 
 # and update CTX template files: `dc.services.tmpl` and `dc.volumes.tmpl`
-addCtxSrv:   context_add_service ## Add service to context:      CTX=<context> SRV=<service> [SARGS=<service_args>]
+addCtxSrvRaw:   context_add_service
+addCtxSrv: ## Add service to context:      CTX=<context> SRV=<service> [SARGS=<service_args>]
+	@$(call __try_context_overwrite, addCtxSrvRaw)
 add.ctx.srv: addCtxSrv
 ctx.add.srv: addCtxSrv
 srv.add.ctx: addCtxSrv
@@ -164,9 +214,11 @@ checkdeps:
 
 # CHECK: - is directory (context) present
 @PHONY: isCtx ctx.check check.ctx
-isCtx: context_check_is_exists ## Check is  'context'  exists: CTX=<context>
+isCtxRaw: context_check_is_exists
 	@$(call _mk_run, "Context exist: '$(CTX)'" );
 	@printf "\n"
+isCtx: ## Check is  'context'  exists: CTX=<context>
+	@$(call __try_context_overwrite, isCtxRaw)
 isCTX: isCtx
 check.ctx: isCtx
 ctx.check: isCtx
@@ -213,7 +265,7 @@ endif
 isSRV: isSrv
 
 # Checks whether a service with the specified name exists in the specified context
-isCtxSrv: context_check_is_exists ## Check is service in context: CTX=<context> SRV=<service>
+isCtxSrvRaw: context_check_is_exists
 	@$(call is_service_in_ctx_tmpl, _MK_IS_CTX_SRV_EXIST)
 
 	@if [ "1" -eq "$(_MK_IS_CTX_SRV_EXIST)" ]; then \
@@ -221,10 +273,13 @@ isCtxSrv: context_check_is_exists ## Check is service in context: CTX=<context> 
 	else \
 		$(call _mk_err, "Service: '$(SERVICE)' disabled at CTX: '$(CTX)'" ); \
 	fi;
-	@printf "\n"	
+	@printf "\n"
+	
+isCtxSrv: ## Check is service in context: CTX=<context> SRV=<service>
+	@$(call __try_context_overwrite, isCtxSrvRaw)
 
 # Prints the list of know services
-listSrv: service_list ## List all services in context
+listSrv: service_list ## List all known services present in `template` folder
 listAllSrv: listSrv
 srv.all: listSrv
 list.srv: listSrv
@@ -234,7 +289,11 @@ srv.listAll: listSrv
 srvList: listSrv
 listSRV: listSrv
 
-listSrvVersion: service_version_list ## List services with versions: CTX=<context> SRV=<pattern>
+
+
+listSrvVersionRaw: service_version_list
+listSrvVersion: ## List services with versions: CTX=<context> SRV=<pattern>
+	@$(call __try_context_overwrite, listSrvVersionRaw)
 list.srv.ver: listSrvVersion
 srv.list.ver: listSrvVersion
 srv.ver.list: listSrvVersion
@@ -250,26 +309,40 @@ isCtxSrvEnabled:
 
 
 # Includes service file to context service-template (`dc.services.tmpl`)
-enableCtxSrv: context_enable_service ## Enable service in context:   CTX=<context> SRV=<service>
+enableCtxSrvRaw: context_enable_service
+enableCtxSrv: ## Enable service in context:   CTX=<context> SRV=<service>
+	@$(call __try_context_overwrite, enableCtxSrvRaw)
 enable.ctx.srv: enableCtxSrv
 ctx.enable.srv: enableCtxSrv
 
 
 # Excludes service file from services-template (`dc.services.tmpl`) for given context <CTX>
-disableCtxSrv: context_disable_service ## Disable service in context:  CTX=<context> SRV=<service>
+disableCtxSrvRaw: context_disable_service
+disableCtxSrv:  ## Disable service in context:  CTX=<context> SRV=<service>
+	@$(call __try_context_overwrite, disableCtxSrvRaw)
 disable.ctx.srv: disableCtxSrv
 ctx.disable.srv: disableCtxSrv
 
 
 # List services in context - prints list of services in context (directory)
-listAllCtxSrv: context_all_service_list ## List services in context:    CTX=<context>
-list.ctx.all.srv: listAllCtxSrv
-ctx.list.srv.all: listAllCtxSrv
-srv.all.ctx.list: listAllCtxSrv
-srv.all.list.ctx: listAllCtxSrv
+listCtxSrvRaw: context_all_service_list 
+listCtxSrv: ## List services in context:    CTX=<context>
+	@$(call __try_context_overwrite, listCtxSrvRaw)
+
+list.ctx.srv: listCtxSrv
+ctx.list.srv: listCtxSrv
+srv.ctx.list: listCtxSrv
+
+list.ctx.all.srv: listCtxSrv
+ctx.list.srv.all: listCtxSrv
+srv.all.ctx.list: listCtxSrv
+# srv.all.list.ctx: listCtxSrv
+
 
 # List enabled services - prints list of added services in context file `dc.services.tmpl`
-listEnabledCtxSrv: context_enabled_service_list ## List enabled services in context: CTX=<context>
+listEnabledCtxSrvRaw: context_enabled_service_list 
+listEnabledCtxSrv: ## List enabled services in context: CTX=<context>
+	@$(call __try_context_overwrite, listEnabledCtxSrvRaw)
 list.ctx.enabled.srv: listEnabledCtxSrv
 ctx.list.srv.enabled: listEnabledCtxSrv
 srv.enabled.ctx.list: listEnabledCtxSrv
@@ -277,7 +350,9 @@ srv.enabled.list.ctx: listEnabledCtxSrv
 
 # Removes service from context - remove service files (<SRV>.yml; <SRV>.env) from context (directory)
 # and clear services and volumes templates: `dc.services.tmpl` and `dc.volumes.tmpl`
-rmCtxSrv: context_remove_service ## Remove service from context: CTX=<context> SRV=<service>
+rmCtxSrvRaw: context_remove_service
+rmCtxSrv: ## Remove service from context: CTX=<context> SRV=<service>
+	@$(call __try_context_overwrite, rmCtxSrvRaw)
 rm.ctx.srv: rmCtxSrv
 ctx.rm.srv: rmCtxSrv
 srv.rm.ctx: rmCtxSrv
@@ -293,7 +368,10 @@ srv.ctx.rescue: rescueCtxSrv
 
 
 # Build context - create 'docker-compose.yml' & '.env' files
-buildCtx: context_build ## Build context: CTX=<context> — create 'docker-compose.yml' & '.env' files
+buildCtxRaw: context_build 
+buildCtx: ## Build context: CTX=<context> — create 'docker-compose.yml' & '.env' files
+	@$(call __try_context_overwrite, buildCtxRaw)
+
 build.ctx: buildCtx
 ctx.build: buildCtx
 
