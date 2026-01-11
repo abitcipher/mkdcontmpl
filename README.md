@@ -14,11 +14,11 @@ The system operates with the concept of context and service.
 | initCtx       | Create new 'context' from .default: `NEWCTX=<context>`       |
 | listCtx       | List all contexts                                            |
 | listSrv       | List all services in context                                 |
-|listSrvVersion | List services with versions: `CTX=<context> SRV=<pattern>`   |
-| addCtxSrv     | Add service to context:      `CTX=<context>` `SRV=<service>` |
-| enableCtxSrv  | Enable service in context:   `CTX=<context>` `SRV=<service>` |
-| disableCtxSrv | Disable service in context:  `CTX=<context>` `SRV=<service>` |
-| rmCtxSrv      | Remove service from context: `CTX=<context>` `SRV=<service>` |
+| listSrvVersion| List services with versions: `CTX=<context>` `SRV=<name>` |
+| addCtxSrv     | Add service to context:      `CTX=<context>` `SRV=<name>` |
+| enableCtxSrv  | Enable service in context:   `CTX=<context>` `SRV=<name>` |
+| disableCtxSrv | Disable service in context:  `CTX=<context>` `SRV=<name>` |
+| rmCtxSrv      | Remove service from context: `CTX=<context>` `SRV=<name>` |
 | buildCtx      | Build context: `CTX=<context>`                               |
 
 #### Example
@@ -93,7 +93,7 @@ $ echo "Hello {{ name }}" | minijinja-cli - -Dname=World
 Hello World
 ```
 
-Also, if installed [Rust](https://www.rust-lang.org/tools/install) and package manager [Cargo](https://doc.rust-lang.org/stable/cargo/) , you can install the 'minijinja-cli' using the command
+Alternatively, if you have [Rust](https://www.rust-lang.org/tools/install) and the [Cargo](https://doc.rust-lang.org/stable/cargo/) package manager installed, you also can install the 'minijinja-cli' using the command
 
 ```bash
 $ cargo install minijinja-cli
