@@ -193,7 +193,7 @@ ctx.new: initCtx
 # Adds service to context - copy service template files (<SRV>.yml; <SRV>.env) to context (direcotry) 
 # and update CTX template files: `dc.services.tmpl` and `dc.volumes.tmpl`
 addCtxSrvRaw:   context_add_service
-addCtxSrv: ## Add service to context:      CTX=<context> SRV=<service> [SARGS=<service_args>]
+addCtxSrv: ## Add service to context:      SRV=<name> [SARGS=<service_args>]
 	@$(call __try_context_overwrite, addCtxSrvRaw)
 add.ctx.srv: addCtxSrv
 ctx.add.srv: addCtxSrv
@@ -217,7 +217,7 @@ checkdeps:
 isCtxRaw: context_check_is_exists
 	@$(call _mk_run, "Context exist: '$(CTX)'" );
 	@printf "\n"
-isCtx: ## Check is  'context'  exists: CTX=<context>
+isCtx: ## Check is  'context'  exists
 	@$(call __try_context_overwrite, isCtxRaw)
 isCTX: isCtx
 check.ctx: isCtx
@@ -252,7 +252,7 @@ rm.ctx: rmCtx
 ctx.rm: rmCtx
 
 # Checks is exist service with given name
-isSrv: ## Check is 'service'  template exists: SRV=<service>
+isSrv: ## Check is 'service'  template exists: SRV=<name>
 ifeq (1, $(_MK_IS_SERVICE_EXIST))
 	@$(call _mk_run, "Service exist: '$(SERVICE)'" )
 	@$(call _mk_inf, "$(_MK_SRV_PATH)")
@@ -275,7 +275,7 @@ isCtxSrvRaw: context_check_is_exists
 	fi;
 	@printf "\n"
 	
-isCtxSrv: ## Check is service in context: CTX=<context> SRV=<service>
+isCtxSrv: ## Check is service in context: SRV=<name>
 	@$(call __try_context_overwrite, isCtxSrvRaw)
 
 # Prints the list of know services
@@ -292,7 +292,7 @@ listSRV: listSrv
 
 
 listSrvVersionRaw: service_version_list
-listSrvVersion: ## List services with versions: CTX=<context> SRV=<pattern>
+listSrvVersion: ## List services with versions: SRV=<name>
 	@$(call __try_context_overwrite, listSrvVersionRaw)
 list.srv.ver: listSrvVersion
 srv.list.ver: listSrvVersion
@@ -310,7 +310,7 @@ isCtxSrvEnabled:
 
 # Includes service file to context service-template (`dc.services.tmpl`)
 enableCtxSrvRaw: context_enable_service
-enableCtxSrv: ## Enable service in context:   CTX=<context> SRV=<service>
+enableCtxSrv: ## Enable service in context:   SRV=<name>
 	@$(call __try_context_overwrite, enableCtxSrvRaw)
 enable.ctx.srv: enableCtxSrv
 ctx.enable.srv: enableCtxSrv
@@ -318,7 +318,7 @@ ctx.enable.srv: enableCtxSrv
 
 # Excludes service file from services-template (`dc.services.tmpl`) for given context <CTX>
 disableCtxSrvRaw: context_disable_service
-disableCtxSrv:  ## Disable service in context:  CTX=<context> SRV=<service>
+disableCtxSrv:  ## Disable service in context:  SRV=<name>
 	@$(call __try_context_overwrite, disableCtxSrvRaw)
 disable.ctx.srv: disableCtxSrv
 ctx.disable.srv: disableCtxSrv
@@ -326,7 +326,7 @@ ctx.disable.srv: disableCtxSrv
 
 # List services in context - prints list of services in context (directory)
 listCtxSrvRaw: context_all_service_list 
-listCtxSrv: ## List services in context:    CTX=<context>
+listCtxSrv: ## List services in context
 	@$(call __try_context_overwrite, listCtxSrvRaw)
 
 list.ctx.srv: listCtxSrv
@@ -341,7 +341,7 @@ srv.all.ctx.list: listCtxSrv
 
 # List enabled services - prints list of added services in context file `dc.services.tmpl`
 listEnabledCtxSrvRaw: context_enabled_service_list 
-listEnabledCtxSrv: ## List enabled services in context: CTX=<context>
+listEnabledCtxSrv: ## List enabled services in context
 	@$(call __try_context_overwrite, listEnabledCtxSrvRaw)
 list.ctx.enabled.srv: listEnabledCtxSrv
 ctx.list.srv.enabled: listEnabledCtxSrv
@@ -351,7 +351,7 @@ srv.enabled.list.ctx: listEnabledCtxSrv
 # Removes service from context - remove service files (<SRV>.yml; <SRV>.env) from context (directory)
 # and clear services and volumes templates: `dc.services.tmpl` and `dc.volumes.tmpl`
 rmCtxSrvRaw: context_remove_service
-rmCtxSrv: ## Remove service from context: CTX=<context> SRV=<service>
+rmCtxSrv: ## Remove service from context: SRV=<name>
 	@$(call __try_context_overwrite, rmCtxSrvRaw)
 rm.ctx.srv: rmCtxSrv
 ctx.rm.srv: rmCtxSrv
@@ -369,7 +369,7 @@ srv.ctx.rescue: rescueCtxSrv
 
 # Build context - create 'docker-compose.yml' & '.env' files
 buildCtxRaw: context_build 
-buildCtx: ## Build context: CTX=<context> — create 'docker-compose.yml' & '.env' files
+buildCtx: ## Build context  — create 'docker-compose.yml' & '.env' files
 	@$(call __try_context_overwrite, buildCtxRaw)
 
 build.ctx: buildCtx
@@ -385,7 +385,7 @@ rmCurrentCtx: ## Remove current context soft link
 
 # Set context as current - launch context files to root directory
 ## PHONY += setCurrentCtx setcontext set.ctx ctx.set
-setCurrentCtx: ##rmCurrentCtx ## Set context as current default: CTX=<context>
+setCurrentCtx: context_check_is_exists ##rmCurrentCtx ## Set context as current default: CTX=<context>
 	@$(eval _TARGET_RELATIVE_DEFAULT_YML=$(addprefix $(addprefix $(_MK_DIR_CONTEXT), $(CTX))/, $(_MK_FN_DC_DEFAULT_YML)))
 	@$(eval _TARGET_RELATIVE_DEFAULT_ENV=$(addprefix $(addprefix $(_MK_DIR_CONTEXT), $(CTX))/, $(_MK_FN_DC_DEFAULT_ENV)))
 	@$(shell echo -n "echo $(_TARGET_RELATIVE_DEFAULT_YML)")
