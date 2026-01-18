@@ -4,10 +4,12 @@
 # .RECIPEPREFIX = >
 
 # INITIAL VARS
+CURRENT_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 .DEFAULT_GOAL := help
 _ENVMAKE_FILE_EXIST = 0
 
 EARLYEXIT ?= 1
+
 ## CHECK SHELL SETUP
 _MAKEFILE_KNOWN_SHELL := /bin/sh /bin/bash /usr/bin/tcsh /bin/zsh /home/linuxbrew/.linuxbrew/bin/nu
 _MAKEFILE_DEFSHELL := $(SHELL)
@@ -104,11 +106,29 @@ _MK_FN_PATH_KVDB ?= $(realpath $(_MK_FN_PATH_RELATIVE_KVDB))
 # _MK_KEYMAP_FILES ?= $(_MK_FN_PATH_KVDB)
 # include $(call addprefix, $(_MK_DIR_MKFILE), keymap.mk)
 
-## INCLUDE LIBRARY mk-files
+## B: INCLUDE LIBRARY mk-files
 _MK_FILE_NAME_INCLUDE_LIST := const.mk io.console.mk condition.mk context.mk service.mk help.mk
+
+# include $(_MK_FILE_FULLNAME_INCLUDE_LIST)
+ifeq ($(shell test -L $(CURRENT_MAKEFILE) && echo -n yes || echo -n no),no)
+
 _MK_FILE_FULLNAME_INCLUDE_LIST := $(strip $(foreach m, $(_MK_FILE_NAME_INCLUDE_LIST), $(call addprefix, $(_MK_DIR_MKFILE), $m)))
+include $(_MK_FILE_FULLNAME_INCLUDE_LIST)
+
+else
+
+_MKFILE_LINK := 1
+_MKFILE_PATH := $(shell readlink $(CURRENT_MAKEFILE))
+_MKFILE_REALPATH := $(abspath $(lastword $(_MKFILE_PATH)))
+_MKFILE_REALPATH_DIR := $(dir $(abspath $(lastword $(_MKFILE_PATH))) )
+_MKFILE_REALPATH_DIR_MKFILE := $(call addprefix, $(_MKFILE_REALPATH_DIR), $(_MK_DIR_MKFILE))
+_MK_FILE_FULLNAME_INCLUDE_LIST := $(strip $(foreach m, $(_MK_FILE_NAME_INCLUDE_LIST), $(call addprefix, $(_MKFILE_REALPATH_DIR_MKFILE), $m)))
 
 include $(_MK_FILE_FULLNAME_INCLUDE_LIST)
+
+endif
+## E: INCLUDE LIBRARY mk-files
+
 
 ## INCLUDE CONFIG IF EXISTS - this file leaves the ability to redefine variables without editing the main files
 ifneq ($(wildcard $(call addprefix, $(_MK_DIR_MKFILE), config.mk)),)

@@ -1,2 +1,0 @@
-  phpworker:
-    driver: ${VOLUMES_DRIVER}

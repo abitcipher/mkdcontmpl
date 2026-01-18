@@ -1,13 +1,10 @@
-.SUFFIXES:
-MAKEFLAGS += -r
-SHELL := /bin/bash
-_MK_DIR_THIS_MAKEFILE := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-
-# INITIAL VARS
 .DEFAULT_GOAL := help
-_ENVMAKE_FILE_EXIST = 0
 
-EARLYEXIT ?= 1
+MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+MKFILE_DIR := $(dir $(MKFILE_PATH))
+CURRENT_MAKEFILE := $(lastword $(MAKEFILE_LIST))
+#CURRENT_MAKEFILE_LINK := $(shell echo "`if [ -L $(CURRENT_MAKEFILE) ] && echo '1' || echo '0'`")
+
 ## CHECK SHELL SETUP
 _MAKEFILE_KNOWN_SHELL := /bin/sh /bin/bash /usr/bin/tcsh /bin/zsh /home/linuxbrew/.linuxbrew/bin/nu
 _MAKEFILE_DEFSHELL := $(SHELL)
@@ -25,9 +22,7 @@ else
 endif
 endif
 
-##
-_MK_DIR_THIS_MAKEFILE := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-
+## INCLUSE BASE ENV-file `.envmake` OR SET DEFAULT
 ifneq (,$(wildcard .envmake))
     _ENVMAKE_FILE_EXIST = 1
     include .envmake
@@ -42,22 +37,131 @@ else
     _MK_DIR_TEST   ?= .test/
     _MK_DIR_TEMPLATE ?= .template/
     _MK_DIR_CONTEXT  ?= .context/
+    _MK_DIR_KVDB     ?= .kvdb/
+
+    _MK_DIR_DOCKER_COMPOSE ?= docker.compose/
+    _MK_DIR_DOCKER_COMPOSE_ENV ?= docker.compose.env/
+    _MK_DIR_YML_SERVICES ?= services/
+    _MK_DIR_YML_VOLUMES  ?= volumes/
+
+    _MK_DIR_TARGET_CTX_TMPL ?= .tmpl/
+    _MK_DIR_TARGET_CTX_YML  ?= .yml/
+    _MK_DIR_TARGET_CTX_ENV  ?= .env/
+
+    _MK_DC_TMPL_HEAD     ?= dc.head.tmpl
+    _MK_DC_TMPL_NETWORK  ?= dc.network.tmpl
+    _MK_DC_TMPL_SERVICES ?= dc.services.tmpl
+    _MK_DC_TMPL_TAIL     ?= dc.tail.tmpl
+    _MK_DC_TMPL_MAIN     ?= dc.tmpl
+    _MK_DC_TMPL_VOLUMES  ?= dc.volumes.tmpl
+
+    _MK_DC_TMPL_DEFAULT_ENV ?= .default.env
+    _MK_DC_DEFAULT_ENV      ?= default.env
+
+    _MK_FN_DC_DEFAULT_YML   ?= docker-compose.yml
+    _MK_FN_DC_DEFAULT_ENV   ?= .env
+    _MK_FN_DEFAULT_KVDB     ?= kv.db.txt
+    _MK_FN_HELP_KVDB        ?= kv.help.db.txt
+
+    _MK_DIR_TEMPLATE_DOCKER_COMPOSE = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE)
+    _MK_DIR_TEMPLATE_DOCKER_COMPOSE_ENV = $(_MK_DIR_TEMPLATE)$(_MK_DIR_DOCKER_COMPOSE_ENV)
+    _MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES = $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE)$(_MK_DIR_YML_SERVICES)
+    _MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_VOLUMES = $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE)$(_MK_DIR_YML_VOLUMES)
+    _MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE = $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE)$(_MK_DIR_TEMPLATE)
 endif
 
-_MK_DIR_TEST ?= .test/
-_MK_FILE_KEYMAP ?= $(_MK_DIR_TEST)kv.db.txt
-KEYMAP_FILES = $(_MK_FILE_KEYMAP)
+_MK_DIR_PATH_TEST = $(realpath $(_MK_DIR_TEST))
+_MK_DIR_PATH_TEMPLATE ?= $(realpath $(_MK_DIR_TEMPLATE))
+_MK_DIR_PATH_CONTEXT ?= $(realpath $(_MK_DIR_CONTEXT))
 
-## include ${_MK_DIR_THIS_MAKEFILE}/.mkfile/keymap.mk
+_MK_DIR_PATH_DOCKER_COMPOSE = $(realpath $(_MK_DIR_DOCKER_COMPOSE))
+_MK_DIR_PATH_DOCKER_COMPOSE_ENV ?= $(realpath $(_MK_DIR_DOCKER_COMPOSE_ENV))
+_MK_DIR_PATH_YML_SERVICES ?= $(realpath $(_MK_DIR_YML_SERVICES))
+_MK_DIR_PATH_YML_VOLUMES ?= $(realpath $(_MK_DIR_YML_VOLUMES))
+
+_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE = $(realpath $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE))
+_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_ENV = $(realpath $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_ENV))
+_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES = $(realpath $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES))
+_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_VOLUMES = $(realpath $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_VOLUMES))
+_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE = $(realpath $(_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE))
+
+## KEYMAP
+_MK_FN_PATH_RELATIVE_KVDB ?= $(call addprefix, $(_MK_DIR_KVDB), $(_MK_FN_DEFAULT_KVDB))
+_MK_FN_PATH_KVDB ?= $(realpath $(_MK_FN_PATH_RELATIVE_KVDB))
+
+
+
+
 ## INCLUDE LIBRARY mk-files
-_MK_FILE_NAME_INCLUDE_LIST := const.mk io.console.mk condition.mk keymap.mk context.mk service.mk help.mk
+_MK_FILE_NAME_INCLUDE_LIST := const.mk io.console.mk condition.mk context.mk service.mk help.mk
 _MK_FILE_FULLNAME_INCLUDE_LIST := $(strip $(foreach m, $(_MK_FILE_NAME_INCLUDE_LIST), $(call addprefix, $(_MK_DIR_MKFILE), $m)))
+
+isTestPath := $@
+empty :=
+# bar := $(if $(empty),then!,else!)
+
+ifeq ($(shell test -L $(CURRENT_MAKEFILE) && echo -n yes || echo -n no),no)
+
+include $(_MK_FILE_FULLNAME_INCLUDE_LIST)
+else
+_MKFILE_LINK := 1
+_MKFILE_PATH := $(shell readlink $(CURRENT_MAKEFILE))
+_MKFILE_REALPATH := $(abspath $(lastword $(_MKFILE_PATH)))
+_MKFILE_REALPATH_DIR := $(dir $(abspath $(lastword $(_MKFILE_PATH))) )
+_MKFILE_REALPATH_DIR_MKFILE := $(call addprefix, $(_MKFILE_REALPATH_DIR), $(_MK_DIR_MKFILE))
+_MK_FILE_FULLNAME_INCLUDE_LIST := $(strip $(foreach m, $(_MK_FILE_NAME_INCLUDE_LIST), $(call addprefix, $(_MKFILE_REALPATH_DIR_MKFILE), $m)))
 
 include $(_MK_FILE_FULLNAME_INCLUDE_LIST)
 
+#$(shell echo $(_MKFILE_REALPATH_DIR))
+
+endif
+
+
+
+## INCLUDE CONFIG IF EXISTS - this file leaves the ability to redefine variables without editing the main files
+ifneq ($(wildcard $(call addprefix, $(_MK_DIR_MKFILE), config.mk)),)
+include $(call addprefix, $(_MK_DIR_MKFILE), config.mk)
+endif
+.ONESHELL: pre-target
+pre-target:
+#ifeq (1,$(_MKFILE_LINK))
+#	@cd $(_MKFILE_REALPATH_DIR) && ls && make -f $(_MKFILE_REALPATH) $(@) $(-*-command-variables-*-) && exit;
+#	@$(shell echo "cd $(_MKFILE_REALPATH_DIR) && ls && make -f $(_MKFILE_REALPATH) $(@) $(-*-command-variables-*-) && exit;")
+# $(shell echo "cd $(_MKFILE_REALPATH_DIR) && make -f $(_MKFILE_REALPATH) $(@) $(-*-command-variables-*-) && exit")
+#endif
+	@printf "\n pre: _MKFILE_LINK : $(_MKFILE_LINK)\n"; 
+	@if [ "1" = "$(_MKFILE_LINK)" ]; then \
+		printf "\n pre: _MKFILE_LINK : $(_MKFILE_LINK)\n"; \
+		cd $(_MKFILE_REALPATH_DIR) && ls && make -f $(_MKFILE_REALPATH) $@ $(-*-command-variables-*-); \
+		exit; \
+	fi;
+#??	kill -1 $$
+#		cd $(_MKFILE_REALPATH_DIR) && ls && make -f $(_MKFILE_REALPATH) testpath $(-*-command-variables-*-) &&  $(shell echo "kill -1 $$PPID")  ;\
+#	exit 1;
 
 .PHONY: all
-test:
+.ONESHELL:
+help: pre-target
+#help:
+	@echo "all... do nothing.."
+	@printf "\n : \@: |$@|"
+	@printf "\nCURDIR : ${CURDIR}"
+	@printf "\n isTestPath : |$(isTestPath)| |${isTestPath}|"
+	@printf "\n MKFILE_PATH : ${MKFILE_PATH}"
+	@printf "\n MKFILE_DIR : ${MKFILE_DIR}"
+	@printf "\n _MKFILE_LINK : ${_MKFILE_LINK}"
+	@printf "\n _MKFILE_PATH : ${_MKFILE_PATH}"
+	@printf "\n _MKFILE_REALPATH : ${_MKFILE_REALPATH}"
+	@printf "\n _MKFILE_REALPATH_DIR : ${_MKFILE_REALPATH_DIR}"
+	@printf "\n CURRENT_MAKEFILE : ${CURRENT_MAKEFILE}"
+	@printf "\n CURRENT_MAKEFILE_LINK : ${CURRENT_MAKEFILE_LINK}"
+	
+	@printf "\n : ${}"
+	@printf "\n"
+
+
+test: 
 	@echo "_MK_FILE_KEYMAP :|$(_MK_FILE_KEYMAP)|"
 
 	@printf "\n[ keys list ]\n"
@@ -100,4 +204,47 @@ test:
 
 testenv:
 	@env
-	
+
+#.ONESHELL:
+testpath: pre-target
+	@printf "\n : \@: |$@|"
+	@printf "\nCURDIR : ${CURDIR}"
+	@printf "\nMKFILE_PATH : ${MKFILE_PATH}"
+	@printf "\nMKFILE_DIR : ${MKFILE_DIR}"
+	@printf "\nisTestPath : ${isTestPath}"
+	@printf "\n : ${}"
+	@printf "\n_MK_DIR_PATH_TEST: ${_MK_DIR_PATH_TEST}"
+	@printf "\n_MK_DIR_PATH_TEMPLATE : ${_MK_DIR_PATH_TEMPLATE}"
+	@printf "\n_MK_DIR_PATH_CONTEXT : ${_MK_DIR_PATH_CONTEXT}"
+	@printf "\n_MK_DIR_PATH_DOCKER_COMPOSE : ${_MK_DIR_PATH_DOCKER_COMPOSE}"
+	@printf "\n_MK_DIR_PATH_DOCKER_COMPOSE_ENV : ${_MK_DIR_PATH_DOCKER_COMPOSE_ENV}"
+	@printf "\n_MK_DIR_PATH_YML_SERVICES : ${_MK_DIR_PATH_YML_SERVICES}"
+	@printf "\n_MK_DIR_PATH_YML_VOLUMES : ${_MK_DIR_PATH_YML_VOLUMES}"
+	@printf "\n_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE : ${_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE}"
+	@printf "\n_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_ENV : ${_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_ENV}"
+	@printf "\n_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES : ${_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES}"
+	@printf "\n_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_VOLUMES : ${_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_VOLUMES}"
+	@printf "\n_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE : ${_MK_DIR_PATH_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE}"
+	@printf "\n_MK_FN_PATH_RELATIVE_KVDB : ${_MK_FN_PATH_RELATIVE_KVDB}"
+	@printf "\n_MK_FN_PATH_KVDB : ${_MK_FN_PATH_KVDB}"
+	@printf "\n_MK_DIR_MKFILE : ${_MK_DIR_MKFILE}"
+	@printf "\n : "
+	@printf "\n_ENVMAKE_FILE_EXIST : ${_ENVMAKE_FILE_EXIST}"
+	@printf "\n_MK_DIR_MKFILE : ${_MK_DIR_MKFILE}"
+	@printf "\n_MK_DIR_TEST : ${_MK_DIR_TEST}"
+	@printf "\n_MK_DIR_TEMPLATE : ${_MK_DIR_TEMPLATE}"
+	@printf "\n_MK_DIR_CONTEXT : ${_MK_DIR_CONTEXT}"
+	@printf "\n_MK_DIR_KVDB : ${_MK_DIR_KVDB}"
+	@printf "\n_MK_DIR_DOCKER_COMPOSE : ${_MK_DIR_DOCKER_COMPOSE}"
+	@printf "\n_MK_DIR_YML_SERVICES : ${_MK_DIR_YML_SERVICES}"
+	@printf "\n_MK_DIR_YML_VOLUMES : ${_MK_DIR_YML_VOLUMES}"
+	@printf "\n_MK_DIR_TARGET_CTX_TMPL : ${_MK_DIR_TARGET_CTX_TMPL}"
+	@printf "\n_MK_DIR_TARGET_CTX_YML : ${_MK_DIR_TARGET_CTX_YML}"
+	@printf "\n_MK_DIR_TARGET_CTX_ENV : ${_MK_DIR_TARGET_CTX_ENV}"
+	@printf "\n : "
+	@printf "\n_MK_DIR_TEMPLATE_DOCKER_COMPOSE : ${_MK_DIR_TEMPLATE_DOCKER_COMPOSE}"
+	@printf "\n_MK_DIR_TEMPLATE_DOCKER_COMPOSE_ENV : ${_MK_DIR_TEMPLATE_DOCKER_COMPOSE_ENV}"
+	@printf "\n_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES : ${_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_SERVICES}"
+	@printf "\n_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_VOLUMES : ${_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_VOLUMES}"
+	@printf "\n_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE : ${_MK_DIR_TEMPLATE_DOCKER_COMPOSE_YML_TEMPLATE}"
+	@printf "\n : \n"
