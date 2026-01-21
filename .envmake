@@ -3,12 +3,19 @@ _SRV_AFFIX ?= .yml
 _VOL_AFFIX ?= .yml
 _ENV_AFFIX ?= .env
 
+_INCPATH ?= ./
+_MK_DIR_MKFILE ?= $(call addprefix, $(_INCPATH),.mkfile/)
+# _MK_DIR_TEST   ?= $(call addprefix, $(_INCPATH),.test/)
+# _MK_DIR_TEMPLATE ?= $(call addprefix, $(_INCPATH),.template/)
+_MK_DIR_CONTEXT  ?= $(call addprefix, $(_INCPATH),.context/)
+_MK_DIR_KVDB ?= $(call addprefix, $(_INCPATH),.kvdb/)
 
-_MK_DIR_MKFILE ?= .mkfile/
+
+#_MK_DIR_MKFILE ?= .mkfile/
 _MK_DIR_TEST   ?= .test/
 _MK_DIR_TEMPLATE ?= .template/
-_MK_DIR_CONTEXT  ?= .context/
-_MK_DIR_KVDB ?= .kvdb/
+#_MK_DIR_CONTEXT  ?= .context/
+#_MK_DIR_KVDB ?= .kvdb/
 
 _MK_DIR_DOCKER_COMPOSE ?= docker.compose/
 _MK_DIR_DOCKER_COMPOSE_ENV ?= docker.compose.env/

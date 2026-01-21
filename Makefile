@@ -5,6 +5,10 @@
 
 # INITIAL VARS
 CURRENT_MAKEFILE := $(lastword $(MAKEFILE_LIST))
+_MKFILE_PATH = $(shell readlink $(CURRENT_MAKEFILE) || ls -1 $(CURRENT_MAKEFILE))
+_MKFILE_REALPATH = $(abspath $(lastword $(_MKFILE_PATH)))
+_MKFILE_REALPATH_DIR = $(dir $(abspath $(lastword $(_MKFILE_PATH))) )
+
 .DEFAULT_GOAL := help
 _ENVMAKE_FILE_EXIST = 0
 
@@ -34,11 +38,19 @@ _TARGET_ENDPOINT_UNKNOWN := unknown
 _MK_DIR_THIS_MAKEFILE := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 #?_MK_IS_CTX_SRV_EXIST = 9
-
+_ENVMAKEFILEPATH := $(call addprefix, $(_MKFILE_REALPATH_DIR), .envmake)
 ## INCLUSE BASE ENV-file `.envmake` OR SET DEFAULT
-ifneq (,$(wildcard .envmake))
+
+_INCPATH = $(_MKFILE_REALPATH_DIR)
+
+ifneq (,$(wildcard $(_ENVMAKEFILEPATH)))
     _ENVMAKE_FILE_EXIST = 1
-    include .envmake
+#ifeq ($(shell test -L $(CURRENT_MAKEFILE) && echo -n yes || echo -n no),no)
+    include $(_ENVMAKEFILEPATH) 
+#.envmake
+#else
+#	include .envmake
+#endif
 else
     _ENVMAKE_FILE_EXIST = 0
 
@@ -118,16 +130,19 @@ include $(_MK_FILE_FULLNAME_INCLUDE_LIST)
 else
 
 _MKFILE_LINK := 1
-_MKFILE_PATH := $(shell readlink $(CURRENT_MAKEFILE))
-_MKFILE_REALPATH := $(abspath $(lastword $(_MKFILE_PATH)))
-_MKFILE_REALPATH_DIR := $(dir $(abspath $(lastword $(_MKFILE_PATH))) )
-_MKFILE_REALPATH_DIR_MKFILE := $(call addprefix, $(_MKFILE_REALPATH_DIR), $(_MK_DIR_MKFILE))
-_MK_FILE_FULLNAME_INCLUDE_LIST := $(strip $(foreach m, $(_MK_FILE_NAME_INCLUDE_LIST), $(call addprefix, $(_MKFILE_REALPATH_DIR_MKFILE), $m)))
-
+# _MKFILE_PATH = $(shell readlink $(CURRENT_MAKEFILE))
+# _MKFILE_REALPATH = $(abspath $(lastword $(_MKFILE_PATH)))
+# _MKFILE_REALPATH_DIR = $(dir $(abspath $(lastword $(_MKFILE_PATH))) )
+# ?_MKFILE_REALPATH_DIR_MKFILE := $(call addprefix, $(_MKFILE_REALPATH_DIR), $(_MK_DIR_MKFILE))
+# ?_MK_FILE_FULLNAME_INCLUDE_LIST := $(strip $(foreach m, $(_MK_FILE_NAME_INCLUDE_LIST), $(call addprefix, $(_MKFILE_REALPATH_DIR_MKFILE), $m)))
+_MK_FILE_FULLNAME_INCLUDE_LIST := $(strip $(foreach m, $(_MK_FILE_NAME_INCLUDE_LIST), $(call addprefix, $(_MK_DIR_MKFILE), $m)))
 include $(_MK_FILE_FULLNAME_INCLUDE_LIST)
 
 endif
 ## E: INCLUDE LIBRARY mk-files
+
+# _FILE_OF_MARK_CTX := $(call addprefix, $(_MKFILE_REALPATH_DIR), $(_MK_FN_DC_DEFAULT_ENV))
+# CTX_CURRENT := $(notdir $(patsubst %/,%,$(dir $(shell echo -n  "`readlink $(_FILE_OF_MARK_CTX)`"))))
 
 
 ## INCLUDE CONFIG IF EXISTS - this file leaves the ability to redefine variables without editing the main files
@@ -135,12 +150,12 @@ ifneq ($(wildcard $(call addprefix, $(_MK_DIR_MKFILE), config.mk)),)
 include $(call addprefix, $(_MK_DIR_MKFILE), config.mk)
 endif
 
-##					make -s $(1) CTX=$(CTX_CURRENT); 
-##		make -s $(1);
+##	make -s $(1) CTX=$(CTX_CURRENT); 
+##	make -s $(1);
 
-define __set_target_name
-printf "$(1)"
-endef
+# define __set_target_name
+# printf "$(1)"
+# endef
 
 ##
 ## __try_context_overwrite
@@ -180,9 +195,30 @@ define __try_context_overwrite
 	fi;
 endef
 
+# printf "cd $(_MKFILE_REALPATH_DIR) &&  make -s -f $(_MKFILE_REALPATH) $1 $(-*-command-variables-*-);";\
+# make -s -f $(_MKFILE_REALPATH) $1 $(-*-command-variables-*-); 
+#
+#if [ "1" = "$(_MKFILE_LINK)" ]; then \
+# 		printf "cd $(_MKFILE_REALPATH_DIR) &&  make -s -C $(_MKFILE_REALPATH_DIR) $1 $(-*-command-variables-*-);";\
+# 		cd $(_MKFILE_REALPATH_DIR) \
+# 		&& make -s -C $(_MKFILE_REALPATH_DIR) $1 $(-*-command-variables-*-) \
+# 		&& exit 1; 
+# fi; 
+define __pre_target
+	$(eval _MK_DIR_PATH_CONTEXT = $(call addprefix, $(_MKFILE_REALPATH_DIR),$(_MK_CTX_PATH)))
+endef
+
 ## ARGS = $(foreach a,$($(subst -,_,$1)_args),$(if $(value $a),$a="$($a)"))
 ### TAGETs:
 test:
+#	@printf "$(CURRENT_MAKEFILE)"
+#	@printf "$(MKFILE_PATH)"
+	
+	@printf "_ENVMAKEFILEPATH: $(_ENVMAKEFILEPATH)\n"
+	@printf "_MKFILE_REALPATH_DIR: $(_MKFILE_REALPATH_DIR)\n"
+	@printf "_MK_DIR_PATH_CONTEXT: $(_MK_DIR_PATH_CONTEXT)\n"
+	@printf "CTX_CURRENT: $(CTX_CURRENT)\n"
+	@printf "_MK_FN_DC_DEFAULT_ENV: $(_MK_FN_DC_DEFAULT_ENV)\n"
 	@$(call _mk_inf,  "$@")
 	@printf "\n"
 
@@ -191,7 +227,7 @@ test-%:
 
 ### ---
 
-.PHONY: help
+#.PHONY: help
 help: ## Show this help; `help.%`  —  detail helps; Check `help.about`
 	@$(MAKE) --no-print-directory checkdeps ## > /dev/null
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
@@ -220,7 +256,7 @@ ctx.add.srv: addCtxSrv
 srv.add.ctx: addCtxSrv
 srv.ctx.add: addCtxSrv
 
-.PHONY: checkdeps
+# .PHONY: checkdeps
 checkdeps:
 	@printf "\n"
 # @echo -n "\nCheck dependencies"
@@ -233,7 +269,7 @@ checkdeps:
 ### ---
 
 # CHECK: - is directory (context) present
-@PHONY: isCtx ctx.check check.ctx
+#@PHONY: isCtx ctx.check check.ctx
 isCtxRaw: context_check_is_exists
 	@$(call _mk_run, "Context exist: '$(CTX)'" );
 	@printf "\n"
@@ -347,6 +383,7 @@ ctx.disable.srv: disableCtxSrv
 # List services in context - prints list of services in context (directory)
 listCtxSrvRaw: context_all_service_list 
 listCtxSrv: ## List services in context
+	@$(call __pre_target)
 	@$(call __try_context_overwrite, listCtxSrvRaw)
 
 list.ctx.srv: listCtxSrv
@@ -390,6 +427,7 @@ srv.ctx.rescue: rescueCtxSrv
 # Build context - create 'docker-compose.yml' & '.env' files
 buildCtxRaw: context_build 
 buildCtx: ## Build context  — create 'docker-compose.yml' & '.env' files
+#	@$(call __pre_target, $@)
 	@$(call __try_context_overwrite, buildCtxRaw)
 
 build.ctx: buildCtx
@@ -399,6 +437,7 @@ ctx.build: buildCtx
 # Clean current context files - remove 'docker-compose.yml' & '.env' files
 ## PHONY += rmCurrentCtx cleancontext clean.ctx ctx.clean
 rmCurrentCtx: ## Remove current context soft link
+#	@$(call __pre_target, $@)
 	@rm -f .env
 	@rm -f docker-compose.yml
 
@@ -430,7 +469,9 @@ startInit: ## Start initial setup
 
 ## .PHONY: help.%
 help.%: ## Show this help.%
+	@$(call __pre_target, $@)
 	$(eval _helpKey=$(shell printf "%s" $@ | sed 's/\./¦/g'))
+#??	@printf "$(_helpKey)"
 	@printf "\n"
 	$(eval _MK_KEYMAP_FILES = $(realpath $(call addprefix, $(_MK_DIR_KVDB), $(_MK_FN_HELP_KVDB)) ))
 	$(eval include $(call addprefix, $(_MK_DIR_MKFILE), keymap.mk))

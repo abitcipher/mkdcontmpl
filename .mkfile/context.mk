@@ -1,6 +1,12 @@
 # INCLUDE LIBs *.mk
 # ?.DEFAULT_GOAL := test
 __is_context := 1
+
+#CURRENT_MAKEFILE := $(lastword $(MAKEFILE_LIST))
+_MKFILE_PATH = $(shell readlink $(CURRENT_MAKEFILE) || ls -1 $(CURRENT_MAKEFILE))
+_MKFILE_REALPATH = $(abspath $(lastword $(_MKFILE_PATH)))
+_MKFILE_REALPATH_DIR = $(dir $(abspath $(lastword $(_MKFILE_PATH))) )
+
 #
 _MKFILE_CONTEXT_ROOT_DIR_PATH := $(realpath $(shell dirname $(firstword $(MAKEFILE_LIST))))
 _MKFILE_CONTEXT_DIR_MKFILE := .mkfile
@@ -62,7 +68,10 @@ $(CTX)
 endef
 
 ## Get current context from symlinked .env file
-CTX_CURRENT := $(notdir $(patsubst %/,%,$(dir $(shell echo -n  "`readlink $(_MK_FN_DC_DEFAULT_ENV)`"))))
+# CTX_CURRENT := $(notdir $(patsubst %/,%,$(dir $(shell echo -n  "`readlink $(_MK_FN_DC_DEFAULT_ENV)`"))))
+_FILE_OF_MARK_CTX := $(call addprefix, $(_MKFILE_REALPATH_DIR), $(_MK_FN_DC_DEFAULT_ENV))
+CTX_CURRENT := $(notdir $(patsubst %/,%,$(dir $(shell echo -n  "`readlink $(_FILE_OF_MARK_CTX)`"))))
+
 
 # For CTX set context directory path
 $(eval _MK_CTX_DIR=$(CTX))
@@ -163,6 +172,7 @@ endif
 
 ##
 ## Return context directory path
+#? $(call addprefix, $(_MKFILE_REALPATH_DIR),$(_MK_CTX_PATH))
 define get_context_path =
 $(_MK_CTX_PATH)
 endef 
@@ -183,6 +193,7 @@ endef
 ## Check is context exists - if does't, then exit with error
 context_check_is_exists: ##@other Check is context exists
 ifeq ($(_MK_IS_CONTEX_EXIST),0)
+	$(call error, "_MK_CTX_PATH= $(_MK_CTX_PATH) ; _MK_DIR_PATH_CONTEXT: $(_MK_DIR_PATH_CONTEXT); /, _MK_CTX_DIR: $(_MK_CTX_DIR); _MK_DIR_CONTEXT: $(_MK_DIR_CONTEXT); _MKFILE_REALPATH_DIR: $(_MKFILE_REALPATH_DIR)")
 	$(call error, "CONTEX: not found...")
 endif
 
