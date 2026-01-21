@@ -4,8 +4,11 @@
     container_name: "${COMPOSE_PROJECT_NAME}_rediscommander"
     hostname: rediscommander
     image: rediscommander/redis-commander:latest
+    depends_on:
+      - redis
     links:
-      - "${REDIS_HOST}"
+      - redis:redis
+    command: --redis-host redis
     restart: unless-stopped
     environment:
       - REDIS_HOSTS=${REDIS_HOST:-localhost}

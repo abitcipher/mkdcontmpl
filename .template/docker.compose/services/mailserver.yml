@@ -5,7 +5,7 @@
     container_name: mailserver
     hostname: mail
     # Change this to your domain, it is used for your email accounts (eg: user@example.com):
-    domainname: gwf.loc
+    domainname: mailserver.loc
     ports:
       - "25:25"
       - "143:143"  # IMAP4 (explicit TLS => STARTTLS)
@@ -13,13 +13,13 @@
       - "587:587"  # ESMTP (explicit TLS => STARTTLS)
       - "993:993"  # IMAP4 (implicit TLS)
     volumes:
-      - ${APP_DATA_PATH_HOST}/mail/mailserver/dms/mail-data/:/var/mail/
-      - ${APP_DATA_PATH_HOST}/mail/mailserver/dms/mail-state/:/var/mail-state/
-      - ${APP_DATA_PATH_HOST}/mail/mailserver/dms/mail-logs/:/var/log/mail/
-      - ${APP_DATA_PATH_HOST}/mail/mailserver/dms/config/:/tmp/docker-mailserver/
-      # The "from" path will vary based on where your certs are locally:
-      - ${APP_DATA_PATH_HOST}/mail/mailserver/nginx-proxy/certs/:/etc/letsencrypt/
+      - ${APP_CONFIG_PATH_HOST}/mailserver/dms/config/:/tmp/docker-mailserver/
+      - ${APP_DATA_PATH_HOST}/mailserver/dms/mail-data/:/var/mail/
+      - ${APP_DATA_PATH_HOST}/mailserver/dms/mail-state/:/var/mail-state/
+      - ${APP_LOG_PATH_HOST}/mailserver/dms/mail-logs/:/var/log/mail/
       - /etc/localtime:/etc/localtime:ro
+      # The "from" path will vary based on where your certs are locally:
+      # - ${APP_DATA_PATH_HOST}/mail/mailserver/nginx-proxy/certs/:/etc/letsencrypt/
     environment:
       - SMTP_ONLY=1
       - ENABLE_FAIL2BAN=0
@@ -39,12 +39,16 @@
       - SPOOF_PROTECTION=0
     restart: unless-stopped
     stop_grace_period: 1m
+    healthcheck:
+      test: "ss --listening --ipv4 --tcp | grep --silent ':smtp' || exit 1"
+      timeout: 3s
+      retries: 0
     logging:
       driver: "json-file"
       options:
         max-size: "50m"
     cap_add:
-      - NET_ADMIN # For Fail2Ban to work
+      - NET_ADMIN # for Fail2Ban
       - SYS_PTRACE
     networks:
       - backend

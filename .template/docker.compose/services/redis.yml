@@ -3,22 +3,9 @@
   redis:
     container_name: "${COMPOSE_PROJECT_NAME}_redis"
     hostname: redis
-    command: sh -c "/iptables.sh && /entrypoint.sh redis-server /etc/redis/redis.conf"
-    image: redis
-    build:
-      context: ./redis
-      args:
-        - REDIS_VERSION=${REDIS_VERSION:-6.2.7}
-        - REDIS_DOWNLOAD_SHA=${REDIS_DOWNLOAD_SHA:-b7a79cc3b46d3c6eb52fa37dde34a4a60824079ebdfb3abfbbfa035947c55319}
-        - REDIS_PORT=${REDIS_PORT:-6379}
-        - COMMON_GID=${COMMON_GID}
-        - COMMON_UID=${COMMON_UID}
-        - COMMON_NAME_GID_1000=${COMMON_NAME_GID_1000}
-        - COMMON_NAME_UID_1000=${COMMON_NAME_UID_1000}
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
+    image: redis:alpine
+    command: redis-server --appendonly yes
+    restart: always
     sysctls:
       - net.core.somaxconn=1024
 #      - vm.overcommit_memory=1
@@ -26,10 +13,27 @@
       - NET_ADMIN
       - SYS_ADMIN
     volumes:
-      - ./redis/iptables.sh:/iptables.sh
-      - ./redis/conf:/etc/redis
+      - ${APP_CONFIG_PATH_HOST}/redis:/etc/redis
       - ${APP_DATA_PATH_HOST}/redis:/data
+#      - ${APP_CONFIG_PATH_HOST}/redis/iptables.sh:/iptables.sh
     ports:
       - "${REDIS_PORT:-6379}:6379"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
     networks:
       - backend
+
+    # command: sh -c "/iptables.sh && /entrypoint.sh redis-server /etc/redis/redis.conf"
+    # image: redis
+    # build:
+    #   context: ./redis
+    #   args:
+    #     - REDIS_VERSION=${REDIS_VERSION:-6.2.7}
+    #     - REDIS_DOWNLOAD_SHA=${REDIS_DOWNLOAD_SHA:-b7a79cc3b46d3c6eb52fa37dde34a4a60824079ebdfb3abfbbfa035947c55319}
+    #     - REDIS_PORT=${REDIS_PORT:-6379}
+    #     - COMMON_GID=${COMMON_GID}
+    #     - COMMON_UID=${COMMON_UID}
+    #     - COMMON_NAME_GID_1000=${COMMON_NAME_GID_1000}
+    #     - COMMON_NAME_UID_1000=${COMMON_NAME_UID_1000}
