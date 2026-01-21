@@ -2,6 +2,10 @@
 #_SERVICE_MAKEFILE_REL_PATH := $(dir $(firstword $(foreach F, $(MAKEFILE_LIST) , $(if $(findstring $(_MAKEFILE_DIR_NAME),$F),$F)) ))
 __is_service := 1
 
+# _MKFILE_PATH = $(shell readlink $(CURRENT_MAKEFILE) || ls -1 $(CURRENT_MAKEFILE))
+# _MKFILE_REALPATH = $(abspath $(lastword $(_MKFILE_PATH)))
+# _MKFILE_REALPATH_DIR = $(dir $(abspath $(lastword $(_MKFILE_PATH))) 
+
 _MKFILE_CONTEXT_ROOT_DIR_PATH := $(realpath $(shell dirname $(firstword $(MAKEFILE_LIST))))
 _MKFILE_CONTEXT_DIR_MKFILE := .mkfile
 _MK_DIR_PATH_MKFILE ?= $(_MKFILE_CONTEXT_ROOT_DIR_PATH)/$(_MKFILE_CONTEXT_DIR_MKFILE)
