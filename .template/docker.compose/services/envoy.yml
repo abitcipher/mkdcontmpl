@@ -2,7 +2,7 @@
   envoy:
     container_name: "${COMPOSE_PROJECT_NAME}_envoy"
     hostname: envoy
-    image: envoyproxy/envoy:latest
+    image: envoyproxy/envoy:${ENVOY_VERSION:-latest}
     volumes:
       - ${APP_CONFIG_PATH_HOST}/envoy/conf:/etc/envoy
       - ${APP_LOG_PATH_HOST}/envoy/envoy_admin.log:/var/log/envoy_admin.log

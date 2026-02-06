@@ -1,0 +1,13 @@
+
+### QDRANT ####################################################################
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant 
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: ${QDRANT_GRPC_PORT:-6334}
+    ports:
+      - 6333:6333 # tcp
+      - 6334:6334 # grpc
+    volumes:
+      - ${APP_DATA_PATH_HOST}/qdrant:/qdrant/storage
+    restart: always

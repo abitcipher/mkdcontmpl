@@ -1,0 +1,24 @@
+### KANIDM #####################################################################
+  kanidm:
+    container_name: "${COMPOSE_PROJECT_NAME}_kanidm"
+    hostname: kanidm
+    image: kanidm/server:latest
+    command: kanidm-server --appendonly yes
+    restart: always
+    sysctls:
+      - net.core.somaxconn=1024
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    volumes:
+      - ${APP_CONFIG_PATH_HOST}/kanidm:/etc/kanidm
+      - ${APP_DATA_PATH_HOST}/kanidm:/data
+    ports:
+      - "${KANIDM_TLS_PORT:-8443}:8443"
+      - "${KANIDM_LDAP_PORT:-8636}:3636"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    networks:
+      - backend

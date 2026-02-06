@@ -1,0 +1,2 @@
+  qdrant:
+    driver: ${VOLUMES_DRIVER}

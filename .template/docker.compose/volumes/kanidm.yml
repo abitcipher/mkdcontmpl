@@ -1,0 +1,2 @@
+  kanidm:
+    driver: ${VOLUMES_DRIVER}

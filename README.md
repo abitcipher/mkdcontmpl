@@ -110,8 +110,51 @@ The `.context/$(CTX)/` directory contains templates (Jinja/Jinja2)
 at the `.context/$(CTX)/.tmpl` folder for build `docker-compose.yml`.
 YML-files from the `.context/$(CTX)/.yml/` directory describe the services available for this context, every file `$(SRV).service.yml` describe some service with name `$(SRV)` .
 Env-files from the directory `.context/$(CTX)/.environ/`  set environment variables for each service  `$(SRV).env`.
+
 The command like:
 ```
 $ make buildCtx CTX=test
 ```
-created 'docker-compose.yml' & '.env' files at the `./.context/test` folder.
+create 'docker-compose.yml' & '.env' files at the `./.context/test` folder.
+
+---
+#### Example: let's from scratch
+
+> when start new dev project:
+
++ Init `newproject`
+```bash
+$ mkdir ~/newproject
+$ cd ~/newproject
+$ git clone --depth=1 https://github.com/abitcipher/mkdcontmpl
+$ cd ./mkdcontmpl
+$ make startInit
+$ make initCtx CTX=new 
+$ make addCtxSrv CTX=new SRV=portainer
+$ make buildCtx CTX=new
+$ make setCurrentCtx CTX=new
+$ docker compose up
+```
+
++ Go to `http://localhost:9010/` 
+  - Login: `admin`
+  - Password: `adminadmin`
+
+... change password, manage `Portainer`
+
++ Add services, build environment:
+```bash
+$ make addCtxSrv SRV=postgres
+$ make buildCtx 
+$ docker compose up
+```
+... go ahead
+
+---
+## Acknowledgements
+
+We are grateful to the following individuals and resources for their contributions and inspiration:
+
+*	[GNU Make](https://www.gnu.org/software/make/) thank you for your titanic work!
+*   [@mitsuhiko](https://github.com/mitsuhiko) for their great [minijinja](https://github.com/mitsuhiko/minijinja).
+*   All the contributors who helped inspire this project.
