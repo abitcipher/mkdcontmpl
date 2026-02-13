@@ -1,0 +1,2 @@
+  smtp4dev:
+    driver: ${VOLUMES_DRIVER}

@@ -3,18 +3,11 @@
   rabbitmq:
     container_name: "${COMPOSE_PROJECT_NAME}_rabbitmq"
     hostname: rabbitmq
-    image: rabbitmq
-    build:
-      dockerfile: Dockerfile
-      context: ./rabbitmq
-#    restart: always
+    image: rabbitmq:4-management
     restart: unless-stopped
     environment:
-      - APP_FQDN=${APP_FQDN}
-      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-user}
-      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-password}
-      - RABBITMQ_SECURE_PASSWORD=${RABBITMQ_SECURE_PASSWORD:-password}
       - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE:-ErlangCookieRabbitMQ}
+
       # - RABBITMQ_NODE_TYPE=${RABBITMQ_NODE_TYPE:-queue-disc}
       # - RABBITMQ_NODE_NAME=${RABBITMQ_NODE_NAME:-rabbit@node}
       # - RABBITMQ_FORCE_BOOT=${RABBITMQ_FORCE_BOOT:-no}
@@ -26,14 +19,9 @@
       # - RABBITMQ_SSL_CERTFILE=/etc/rabbitmq/ssl/server/cert.pem
       # - RABBITMQ_SSL_KEYFILE=/etc/rabbitmq/ssl/server/key.pem
 
-      # # - RABBITMQ_SSL_CACERTFILE=${RABBITMQ_SSL_CACERTFILE}
-      # # - RABBITMQ_SSL_CERTFILE=${RABBITMQ_SSL_CERTFILE}
-      # # - RABBITMQ_SSL_KEYFILE=${RABBITMQ_SSL_KEYFILE}
-      # # - RABBITMQ_SSL_DEPTH=${RABBITMQ_SSL_DEPTH}
-
-      # # - RABBITMQ_COMBINED_CERT_PATH=${RABBITMQ_COMBINED_CERT_PATH}
       # - RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT=${RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT:-verify_none}
       # - RABBITMQ_SSL_VERIFY=${RABBITMQ_SSL_VERIFY:-verify_none}
+
       # # Management server configuration
       # - RABBITMQ_MANAGEMENT_SSL_FAIL_IF_NO_PEER_CERT=${RABBITMQ_MANAGEMENT_SSL_FAIL_IF_NO_PEER_CERT:-yes}
       # - RABBITMQ_MANAGEMENT_SSL_VERIFY=${RABBITMQ_MANAGEMENT_SSL_VERIFY:-verify_peer}
@@ -49,16 +37,19 @@
       timeout: 10s
       retries: 2
     volumes:
-      - ./rabbitmq/conf/:/etc/rabbitmq
+      - ${APP_CONFIG_PATH_HOST}/rabbitmq/:/etc/rabbitmq
       - ${APP_DATA_PATH_HOST}/rabbitmq/var/lib/rabbitmq/mnesia:/var/lib/rabbitmq/mnesia
-      - ${APP_DATA_PATH_HOST}/rabbitmq/var/log/rabbitmq:/var/log/rabbitmq
-    #  - ${APP_DATA_PATH_HOST}/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+      - ${APP_LOG_PATH_HOST}/rabbitmq/var/log/rabbitmq:/var/log/rabbitmq
     cap_add:
       - NET_ADMIN
     ports:
-      - "15672:15672"
-      - "5672:5672"
       - "5671:5671"
+      - "5672:5672"
+      - "15672:15672"
+#?      - "4369:4369"
+#?      - "5551:5551"
+#?      - "5552:5552"
+#?      - "25672:25672"
     networks:
       - backend
       - frontend
