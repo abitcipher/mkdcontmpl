@@ -1,0 +1,2 @@
+  mistralrs:
+    driver: ${VOLUMES_DRIVER}

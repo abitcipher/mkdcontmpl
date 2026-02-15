@@ -1,0 +1,34 @@
+  
+  #### MISTRAL.RS #########################################
+  mistralrs:
+    container_name: "${COMPOSE_PROJECT_NAME}_mistralrs"
+    # Use the official mistral.rs Docker image
+    # image: ghcr.io/ericlbuehler/mistral.rs:latest
+    image: ghcr.io/ericlbuehler/mistral.rs:cuda-80-sha-b5af26051d1ae87102bb2a2815dd7d526c02c5d6
+    # Enable all available GPUs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    # Map port 1234 on the host to port 1234 in the container
+    ports:
+      - "1234:1234"
+    volumes:
+      # Mount the local Hugging Face cache to the container for model persistence
+      - ~/.cache/huggingface:/data
+    environment:
+      # Set Hugging Face token if you are using private models (optional)
+      # - HUGGING_FACE_HUB_TOKEN=YOUR_HF_TOKEN
+      # Specify the cache directory location as expected by the container
+      - HUGGINGFACE_HUB_CACHE=/data
+    # Command to start the mistralrs server and load a specific model
+    command: >
+      mistralrs-server  
+      --serve-ip 0.0.0.0
+      --port 1234
+      run --model-id Qwen/Qwen3-4B
+    restart: unless-stopped
+    networks:
+      - backend
+      - frontend

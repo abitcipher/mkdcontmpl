@@ -1,0 +1,2 @@
+include:
+  - ${APP_SRC_PATH_HOST}/asmttpd.yml

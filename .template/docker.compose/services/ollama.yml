@@ -1,0 +1,14 @@
+  
+  #### OLLAMA #############################################
+  ollama:
+    container_name: "${COMPOSE_PROJECT_NAME}_ollama"
+    hostname: ollama
+    image: ollama/ollama:latest
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ${APP_DATA_PATH_HOST}/ollama:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - backend
+      - frontend

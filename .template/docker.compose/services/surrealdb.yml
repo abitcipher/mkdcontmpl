@@ -1,0 +1,30 @@
+
+#### SURREALDB ############################################
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    container_name: surrealdb
+    ports:
+      - "${SURREALDB_PORT:-8000}:8000"
+    volumes:
+      # This mounts a local directory 'db_data' to the container path for data persistence
+      - ${APP_DATA_PATH_HOST}/surrealdb:/db_data
+    command: 
+      # Starts the server and specifies the on-disk storage path
+      - start 
+      # Sets the username for the database
+      - --user=root 
+      # Sets the password for the database
+      - --pass=root 
+      # Specifies the on-disk storage engine and path
+      - rocksdb:/db_data/data.db
+    restart: always
+    # Optional: these flags allow interactive access to the container's shell
+    stdin_open: true 
+    tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    networks:
+      - frontend
+      - backend

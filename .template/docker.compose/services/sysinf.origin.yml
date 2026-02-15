@@ -1,0 +1,46 @@
+
+### SYSINF ####################################################################
+  sysinf:
+    container_name: "${COMPOSE_PROJECT_NAME}_sysinf"
+    hostname: sysinf
+    image: sysinf
+    command: sh -c "cd /usr/local/bin/ && ./sysinf"
+#    build:
+#      dockerfile: Dockerfile
+#      context: ./sysinf
+    volumes:
+      - ${APP_DATA_PATH_HOST}/sysinf/sysinf_history:/usr/local/bin/sysinf_history
+      - ${APP_SRC_PATH_HOST}/sysinf/src/assets:/usr/local/bin/assets
+
+    build:
+      args:
+      - APP_SRC_PATH_HOST=${APP_SRC_PATH_HOST}
+      dockerfile_inline: |-
+        FROM rust:buster AS build
+        RUN rustc -V
+
+        ARG APP_SRC_PATH_HOST
+
+        WORKDIR /usr/src/sysinf
+        COPY ${APP_SRC_PATH_HOST}/sysinf/src/ .
+        RUN cargo install --path .
+        RUN ls .
+        
+        FROM debian:buster-slim as prod
+
+        ARG APP_SRC_PATH_HOST
+
+        COPY --from=build /usr/src/sysinf/target/release/ /usr/local/bin/
+        COPY --from=build /usr/src/sysinf/templates /usr/local/bin/templates
+        ADD ${APP_SRC_PATH_HOST}/sysinf/src/Rocket.toml /usr/local/bin/
+      
+        CMD ["sysinf"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    ports:
+      - "${SYSINF_PORT}:7171"
+    networks:
+      - frontend
+      - backend

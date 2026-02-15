@@ -1,2 +1,2 @@
-  webstatic:
+  surrealdb:
     driver: ${VOLUMES_DRIVER}
